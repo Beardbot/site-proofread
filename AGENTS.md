@@ -50,7 +50,7 @@ node dist/cli.js prepare-review client
   - `run.ts`: extraction orchestration, browser lifecycle, screenshots, output writing.
   - `extractor.ts`: DOM extraction and pragmatic hidden-content handling.
   - `markdown.ts`: page Markdown, manifests, proofreading input, README, prompt renderers.
-  - `warnings.ts`: extraction QA warnings (incl. mojibake detection).
+  - `warnings.ts`: extraction QA warnings (uses shared mojibake detection).
   - `filenames.ts` / `progress.ts` / `types.ts`: stable filenames, progress formatting, shared extract types.
 - `src/review/`: review lane (formerly `proofread-agent/src`).
   - `run.ts`: review-workspace orchestration; `DEFAULT_INPUT_ROOT` now `./proofreading-output`.
@@ -58,8 +58,10 @@ node dist/cli.js prepare-review client
   - `batching.ts` / `exclusions.ts`: deterministic batching and page exclusion.
   - `prompts.ts`: review prompts, severity-first report templates, manual-review notes.
   - `config.ts`: dictionary config load/merge and default config discovery.
-  - `mojibake.ts` / `types.ts`: review-lane mojibake detection and types.
-- `tests/extract/` and `tests/review/`: focused unit tests per lane, plus a Playwright-backed Unicode regression under `tests/extract/`.
+  - `types.ts`: review-lane types.
+- `src/shared/`: cross-lane core shared by both lanes.
+  - `mojibake.ts`: canonical mojibake signatures and detection/rendering helpers (union of both lanes' former lists).
+- `tests/extract/`, `tests/review/`, and `tests/shared/`: focused unit tests per lane and for the shared core, plus a Playwright-backed Unicode regression under `tests/extract/`.
 
 ## Working Rules For Agents
 
