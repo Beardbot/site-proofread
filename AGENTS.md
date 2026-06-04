@@ -61,6 +61,7 @@ node dist/cli.js prepare-review client
   - `types.ts`: review-lane types.
 - `src/shared/`: cross-lane core shared by both lanes.
   - `mojibake.ts`: canonical mojibake signatures and detection/rendering helpers (union of both lanes' former lists).
+  - `slug.ts`: canonical `slugify` (NFKD diacritic-stripping; caller-supplied fallback string).
 - `tests/extract/`, `tests/review/`, and `tests/shared/`: focused unit tests per lane and for the shared core, plus a Playwright-backed Unicode regression under `tests/extract/`.
 
 ## Working Rules For Agents

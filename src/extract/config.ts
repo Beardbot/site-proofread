@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { parse, stringify } from "yaml";
+import { slugify } from "../shared/slug.js";
 import type {
   AuditConfig,
   CliInitOptions,
@@ -56,7 +57,8 @@ export async function createInitialConfigFile(
 export function createInitialConfig(input: InitialConfigInput): RawConfig {
   const siteName = normalizeOptionalString(input.name) ?? deriveSiteName(input.site);
   const outputDirectory =
-    normalizeOptionalString(input.outputDirectory) ?? `./proofreading-output/${slugify(siteName)}`;
+    normalizeOptionalString(input.outputDirectory) ??
+    `./proofreading-output/${slugify(siteName, "site-copy-audit")}`;
   const allowedTerms = normalizeStringArray(input.allowedTerms).length
     ? normalizeStringArray(input.allowedTerms)
     : [siteName];
@@ -221,15 +223,6 @@ export function deriveSiteName(stagingUrl: string): string {
   } catch {
     return "Site Copy Audit";
   }
-}
-
-export function slugify(value: string): string {
-  const slug = value
-    .toLowerCase()
-    .replace(/['"]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
-  return slug || "site-copy-audit";
 }
 
 function ensureValidUrl(value: string, label: string): void {

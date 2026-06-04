@@ -6,14 +6,14 @@ import {
   createInitialConfigFile,
   createInitialConfigInput,
   deriveSiteName,
-  resolveConfig,
-  slugify
+  resolveConfig
 } from "./extract/config.js";
 import { runAudit, type RunProgress } from "./extract/run.js";
 import { formatProgressLine } from "./extract/progress.js";
 import type { CliInitOptions } from "./extract/types.js";
 import { prepareReviewWorkspace } from "./review/run.js";
 import type { ReviewMode } from "./review/types.js";
+import { slugify } from "./shared/slug.js";
 
 const program = new Command();
 
@@ -155,7 +155,7 @@ async function promptInitialConfig(options: CliInitOptions) {
     const outputDirectory = await promptWithDefault(
       prompts,
       "Proofreading output directory",
-      options.outputDirectory ?? `./proofreading-output/${slugify(name)}`
+      options.outputDirectory ?? `./proofreading-output/${slugify(name, "site-copy-audit")}`
     );
     const language = await promptWithDefault(
       prompts,
