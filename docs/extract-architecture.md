@@ -1,22 +1,20 @@
-> **Note:** This document describes unchanged internals carried over during the repo merge. For the current unified command names (`site-proofread extract` / `site-proofread prepare-review`), see the top-level [README](../README.md). Some examples below still use the pre-merge `site-copy-audit run` / `proofread-agent prepare` command names and the generated review workspace still references them; those are tracked for a follow-up commit.
-
 # Architecture
 
 This CLI turns sitemap-listed staging pages into a Markdown proofreading pack. The architecture is intentionally linear and conservative.
 
 ## Data Flow
 
-1. `src/cli.ts` parses `init` or `run` commands.
-2. For `init`, `src/cli.ts` either prompts for project values or accepts flags, then `src/config.ts` writes a minimal YAML config.
-3. For `run`, `src/config.ts` loads YAML, applies defaults, merges CLI overrides, and validates required fields.
-4. `src/sitemap.ts` fetches configured sitemaps, parses URL entries, and expands directly referenced sitemap indexes one level.
-5. `src/scope.ts` filters URLs by allowed host and blocked admin/login path fragments.
-6. `src/run.ts` launches Playwright Chromium and visits each allowed URL.
-7. `src/extractor.ts` extracts proofreadable DOM content and pragmatic hidden accordion/tab content.
-8. `src/warnings.ts` adds page-level extraction QA warnings.
-9. `src/markdown.ts` writes page Markdown, manifest Markdown/JSON, proofreading input index, output README, and proofreading-agent prompt.
+1. `src/cli.ts` parses `init` or `extract` commands.
+2. For `init`, `src/cli.ts` either prompts for project values or accepts flags, then `src/extract/config.ts` writes a minimal YAML config.
+3. For `extract`, `src/extract/config.ts` loads YAML, applies defaults, merges CLI overrides, and validates required fields.
+4. `src/extract/sitemap.ts` fetches configured sitemaps, parses URL entries, and expands directly referenced sitemap indexes one level.
+5. `src/extract/scope.ts` filters URLs by allowed host and blocked admin/login path fragments.
+6. `src/extract/run.ts` launches Playwright Chromium and visits each allowed URL.
+7. `src/extract/extractor.ts` extracts proofreadable DOM content and pragmatic hidden accordion/tab content.
+8. `src/extract/warnings.ts` adds page-level extraction QA warnings.
+9. `src/extract/markdown.ts` writes page Markdown, manifest Markdown/JSON, proofreading input index, output README, and proofreading-agent prompt.
 
-During `run`, `src/run.ts` emits structured progress events. `src/cli.ts` renders early events as phase text, then uses `src/progress.ts` to render page-count progress once `current` and `total` are known.
+During `extract`, `src/extract/run.ts` emits structured progress events. `src/cli.ts` renders early events as phase text, then uses `src/extract/progress.ts` to render page-count progress once `current` and `total` are known.
 
 ## Safety Boundaries
 
@@ -58,7 +56,7 @@ HTML page text is decoded by the browser through Playwright. The extractor reads
 
 Fixtures cover smart apostrophes, curly quotes, en dashes, non-breaking spaces, accented characters, and common HTML entities. Extracted text should remain valid UTF-8 in page Markdown, `manifest.md`, and `manifest.json`.
 
-`src/warnings.ts` checks extracted text for common mojibake signatures such as `â€™`, `â€œ`, `â€`, `â€“`, `Ã`, `Â`, and `�`. If one is found, the page receives an extraction warning instead of silently passing the issue through.
+`src/extract/warnings.ts` checks extracted text for common mojibake signatures such as `â€™`, `â€œ`, `â€`, `â€“`, `Ã`, `Â`, and `�`. If one is found, the page receives an extraction warning instead of silently passing the issue through.
 
 ## Hidden Content Lifecycle
 

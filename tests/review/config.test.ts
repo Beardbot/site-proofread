@@ -36,7 +36,7 @@ describe("resolveConfigPath", () => {
 
   it("auto-discovers a default config file in the search directory", async () => {
     const dir = await makeTempDir();
-    const file = path.join(dir, "proofread-agent.config.yml");
+    const file = path.join(dir, "site-proofread.config.yml");
     await writeFile(file, "excluded_pages: []\n", "utf8");
 
     expect(await resolveConfigPath(undefined, dir)).toBe(file);
@@ -49,7 +49,7 @@ describe("resolveConfigPath", () => {
 });
 
 async function makeTempDir(): Promise<string> {
-  const dir = path.join(os.tmpdir(), `proofread-agent-config-${Date.now()}-${Math.random()}`);
+  const dir = path.join(os.tmpdir(), `site-proofread-config-${Date.now()}-${Math.random()}`);
   await mkdir(dir, { recursive: true });
   return dir;
 }

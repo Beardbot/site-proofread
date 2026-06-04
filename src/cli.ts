@@ -85,7 +85,7 @@ program
   .option("--out-root <dir>", "root directory for archived review workspaces", "./proofreading/reviews")
   .option("--run-id <id>", "run folder name under the client archive")
   .option("--out <dir>", "full output review workspace directory override")
-  .option("--config <file>", "proofreading config YAML (defaults to proofread-agent.config.yml in the current directory)")
+  .option("--config <file>", "proofreading config YAML (defaults to site-proofread.config.yml in the current directory)")
   .option("--mode <mode>", "review depth: full or basic", parseReviewMode, "full")
   .option("--max-batch-chars <number>", "maximum estimated characters per batch", parsePositiveInteger)
   .action(async (client: string | undefined, options: {
@@ -162,7 +162,7 @@ async function promptInitialConfig(options: CliInitOptions) {
     const outputDirectory = await promptWithDefault(
       prompts,
       "Proofreading output directory",
-      options.outputDirectory ?? `./proofreading/extracts/${slugify(name, "site-copy-audit")}`
+      options.outputDirectory ?? `./proofreading/extracts/${slugify(name, "site-proofread")}`
     );
     const language = await promptWithDefault(
       prompts,
