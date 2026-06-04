@@ -100,6 +100,7 @@ extract:
     - ".grecaptcha-badge"
     - ".cky-consent-container"
     - ".cookie-notice"
+    - 'header[data-elementor-type="header"] .elementor-sticky'
     - "script"
     - "style"
     - "noscript"
@@ -180,6 +181,8 @@ extract:
 ```
 
 The direct-child selector `header[data-elementor-type="header"] > .elementor-sticky` is usually too narrow for Elementor, because sticky containers are often nested inside the header.
+
+This Elementor sticky selector ships in the built-in `exclude_selectors` defaults, so it already applies unless you set your own `exclude_selectors` (which replaces the defaults entirely).
 
 ## Multiple Runs
 

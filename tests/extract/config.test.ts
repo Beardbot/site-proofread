@@ -54,6 +54,17 @@ describe("mergeConfig", () => {
     expect(config.screenshots.animations).toBe("allow");
   });
 
+  it("includes the Elementor sticky-header selector in the default excludes", () => {
+    const config = mergeConfig({
+      site: { name: "Client", staging_url: "https://staging.example.com" },
+      sitemaps: ["https://staging.example.com/sitemap.xml"]
+    });
+
+    expect(config.extract.exclude_selectors).toContain(
+      'header[data-elementor-type="header"] .elementor-sticky'
+    );
+  });
+
   it("supports legacy dictionary config as a proofreading fallback", () => {
     const config = mergeConfig({
       site: { name: "Client", staging_url: "https://staging.example.com" },
