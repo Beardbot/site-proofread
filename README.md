@@ -52,7 +52,7 @@ init  ->  extract  ->  prepare-review  ->  drive your own agent over the workspa
      --sitemap https://staging.example.com/page-sitemap.xml
    ```
 
-   `init` with no flags in a TTY prompts for the site URL, name, sitemaps, output directory, language, and allowed terms, then writes a minimal config (defaults fill in at run time).
+   `init` with no flags in a TTY prompts for the site URL, name, sitemaps, output directory, language, allowed terms, and the config file path, then writes a minimal config (defaults fill in at run time). When you don't pass `--out` (or accept the prompt default), the config is written to `./configs/<name>.yml`.
 
 2. **Extract the content pack:**
 

@@ -40,7 +40,7 @@ site-copy-audit init \
   --output-directory ./proofreading-output/client-name
 ```
 
-`--sitemap`, `--term`, and `--note` can be repeated. `--out` is the config file path. `--output-directory` is the generated proofreading pack directory stored in the config.
+`--sitemap`, `--term`, and `--note` can be repeated. `--out` is the config file path; when omitted it defaults to `./configs/<name>.yml` (the slugified site/client name). `--output-directory` is the generated proofreading pack directory stored in the config.
 
 The generated config intentionally omits fields that have runtime defaults. A typical new config looks like:
 
