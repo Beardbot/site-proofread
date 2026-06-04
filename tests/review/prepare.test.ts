@@ -19,7 +19,7 @@ describe("prepareReviewWorkspace", () => {
     expect(result.mode).toBe("full");
     expect(result.clientSlug).toBe("test-site");
     expect(result.runId).toBe("2026-06-03");
-    expect(result.workspaceDir).toContain(path.join("proofreading-reviews", "test-site", "2026-06-03"));
+    expect(result.workspaceDir).toContain(path.join("reviews", "test-site", "2026-06-03"));
     await expectFile(result.workspaceDir, "AGENTS.md", "Do not crawl the live website.");
     await expectFile(result.workspaceDir, "AGENTS.md", "Do not use Playwright, browser automation, or web browsing.");
     await expectFile(result.workspaceDir, "AGENTS.md", "Do not edit website source files.");
@@ -34,14 +34,14 @@ describe("prepareReviewWorkspace", () => {
     await expectFile(result.workspaceDir, "AGENTS.md", "display as boxes or mojibake");
     await expectFile(result.workspaceDir, "AGENTS.md", "Do not start an interactive REPL");
     await expectFile(result.workspaceDir, "AGENTS.md", "Unicode code points (U+1F534, U+1F7E0, U+1F7E1)");
-    expect(result.workspaceReference).toBe("proofreading-reviews/test-site/2026-06-03");
-    expect(result.kickoffPrompt).toContain("proofreading-reviews/test-site/2026-06-03/AGENTS.md");
+    expect(result.workspaceReference).toBe("reviews/test-site/2026-06-03");
+    expect(result.kickoffPrompt).toContain("reviews/test-site/2026-06-03/AGENTS.md");
     await expectFile(result.workspaceDir, "README.md", "Open the `proofread-agent` project root as the Codex workspace.");
     await expectFile(result.workspaceDir, "README.md", "reports/pages/");
     await expectFile(result.workspaceDir, "README.md", "proofread-agent prepare <client-name>");
     await expectFile(result.workspaceDir, "README.md", "codex-kickoff-prompt.md");
-    await expectFile(result.workspaceDir, "codex-kickoff-prompt.md", "proofreading-reviews/test-site/2026-06-03/AGENTS.md");
-    await expectFile(result.workspaceDir, "codex-kickoff-prompt.md", "proofreading-reviews/test-site/2026-06-03/site-pack");
+    await expectFile(result.workspaceDir, "codex-kickoff-prompt.md", "reviews/test-site/2026-06-03/AGENTS.md");
+    await expectFile(result.workspaceDir, "codex-kickoff-prompt.md", "reviews/test-site/2026-06-03/site-pack");
     await expectFile(result.workspaceDir, "codex-kickoff-prompt.md", "reports/pages");
     await expectFile(result.workspaceDir, "codex-kickoff-prompt.md", "Complete the pending page-report placeholders");
     await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "Do not treat URL slugs as proofreading content.");
@@ -209,7 +209,7 @@ describe("prepareReviewWorkspace", () => {
   it("resolves client names from the default input-root style and archives under out-root", async () => {
     const root = await makeTempDir();
     const inputRoot = path.join(root, "site-copy-audit-output");
-    const outRoot = path.join(root, "proofreading-reviews");
+    const outRoot = path.join(root, "reviews");
     await createPackAt(path.join(inputRoot, "murray-bridge-medical-centre"), 1, "Copy");
 
     const result = await prepareReviewWorkspace({

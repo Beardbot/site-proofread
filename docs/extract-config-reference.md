@@ -37,7 +37,7 @@ site-copy-audit init \
   --sitemap https://staging.example.com/page-sitemap.xml \
   --name "Client Name" \
   --term "Client Name" \
-  --output-directory ./proofreading-output/client-name
+  --output-directory ./extracts/client-name
 ```
 
 `--sitemap`, `--term`, and `--note` can be repeated. `--out` is the config file path; when omitted it defaults to `./configs/<name>.yml` (the slugified site/client name). `--output-directory` is the generated proofreading pack directory stored in the config.
@@ -58,7 +58,7 @@ proofreading:
     - "Client Name"
 
 output:
-  directory: "./proofreading-output/client-name"
+  directory: "./extracts/client-name"
 ```
 
 ## Full Shape
@@ -121,7 +121,7 @@ screenshots:
   animations: "disabled"
 
 output:
-  directory: "./proofreading-output/client-name"
+  directory: "./extracts/client-name"
   markdown_only: true
 ```
 
@@ -195,7 +195,7 @@ Use a distinct `output.directory` for clean historical runs:
 
 ```yaml
 output:
-  directory: "./proofreading-output/client-name/2026-06-03"
+  directory: "./extracts/client-name/2026-06-03"
 ```
 
 If the same output directory is reused, matching generated page and screenshot filenames can be overwritten. Old unrelated files are not deleted.
@@ -234,7 +234,7 @@ Direct args can provide or override the site URL, sitemaps, and output directory
 npm run audit:run -- \
   --site https://staging.example.com \
   --sitemap https://staging.example.com/page-sitemap.xml \
-  --out ./proofreading-output/client-name
+  --out ./extracts/client-name
 ```
 
 Config values still supply the remaining defaults.

@@ -43,15 +43,15 @@ Answer the prompts (staging site URL, site name, sitemap URL(s), and so on). It 
 node dist/cli.js extract --config ./configs/your-site.yml
 ```
 
-A headless browser visits each page listed in the sitemap and writes its copy — plus full-page screenshots — to `./proofreading-output/your-site/`.
+A headless browser visits each page listed in the sitemap and writes its copy — plus full-page screenshots — to `./extracts/your-site/`.
 
-**4. Build the review workspace — `prepare-review`** (use the folder name `extract` created under `./proofreading-output/`)
+**4. Build the review workspace — `prepare-review`** (use the folder name `extract` created under `./extracts/`)
 
 ```bash
 node dist/cli.js prepare-review your-site
 ```
 
-This creates a self-contained workspace under `./proofreading-reviews/your-site/<date>/` and prints a kick-off prompt (also saved there as `codex-kickoff-prompt.md`). Add `--mode basic` for a fast pre-launch sanity check instead of a full review.
+This creates a self-contained workspace under `./reviews/your-site/<date>/` and prints a kick-off prompt (also saved there as `codex-kickoff-prompt.md`). Add `--mode basic` for a fast pre-launch sanity check instead of a full review.
 
 **5. Run the review with your agent**
 
@@ -97,12 +97,12 @@ init  ->  extract  ->  prepare-review  ->  drive your own agent over the workspa
    site-proofread extract \
      --site https://staging.example.com \
      --sitemap https://staging.example.com/page-sitemap.xml \
-     --out ./proofreading-output/client-name
+     --out ./extracts/client-name
    ```
 
    On Windows PowerShell, use backtick (`` ` ``) line continuations instead of `\`.
 
-3. **Prepare a review workspace** from the pack (resolved under `./proofreading-output/<client>` by default):
+3. **Prepare a review workspace** from the pack (resolved under `./extracts/<client>` by default):
 
    ```bash
    site-proofread prepare-review client-name
@@ -112,7 +112,7 @@ init  ->  extract  ->  prepare-review  ->  drive your own agent over the workspa
 
    ```bash
    site-proofread prepare-review client-name --mode basic
-   site-proofread prepare-review --input ./proofreading-output/client-name --mode basic
+   site-proofread prepare-review --input ./extracts/client-name --mode basic
    ```
 
    Pass either a client name or `--input`, not both.
@@ -129,7 +129,7 @@ init  ->  extract  ->  prepare-review  ->  drive your own agent over the workspa
 - `screenshots/NNN-slug.png` — full-page screenshots when enabled.
 - `README.md` / `agent-proofreading-prompt.md` — pack notes and a standalone proofreading prompt.
 
-`prepare-review` writes a workspace under `./proofreading-reviews/<client>/<run-id>/` containing `site-pack/` (a copy of the pack), `batches/` (review prompts), `reports/pages/` (per-page placeholders), severity-first templates, and a `merge-prompt.md`. See [docs/review-workflow.md](docs/review-workflow.md).
+`prepare-review` writes a workspace under `./reviews/<client>/<run-id>/` containing `site-pack/` (a copy of the pack), `batches/` (review prompts), `reports/pages/` (per-page placeholders), severity-first templates, and a `merge-prompt.md`. See [docs/review-workflow.md](docs/review-workflow.md).
 
 ## Safety boundaries
 

@@ -2,8 +2,8 @@ node_modules/
 dist/
 coverage/
 *.tsbuildinfo
-proofreading-output/
-proofreading-reviews/
+extracts/
+reviews/
 tmp/
 configs/
 *.log

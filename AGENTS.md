@@ -53,7 +53,7 @@ node dist/cli.js prepare-review client
   - `warnings.ts`: extraction QA warnings (uses shared mojibake detection).
   - `filenames.ts` / `progress.ts` / `types.ts`: stable filenames, progress formatting, and extract types (its strict producer `PageOutput` refines the shared pack contract).
 - `src/review/`: review lane (formerly `proofread-agent/src`).
-  - `run.ts`: review-workspace orchestration; `DEFAULT_INPUT_ROOT` now `./proofreading-output`.
+  - `run.ts`: review-workspace orchestration; `DEFAULT_INPUT_ROOT` now `./extracts`.
   - `pack.ts`: pack loading/validation and copy (incl. mojibake scanning).
   - `batching.ts` / `exclusions.ts`: deterministic batching and page exclusion.
   - `prompts.ts`: review prompts, severity-first report templates, manual-review notes.
@@ -76,7 +76,7 @@ node dist/cli.js prepare-review client
 - Update this `AGENTS.md` when source files, project rules, safety boundaries, or agent workflows change.
 - Keep extraction warnings as QA notes about extraction quality, not proofreading findings.
 - Browser DOM text is the source of truth for HTML decoding; do not manually decode HTML entities a second time. Keep mojibake regression coverage when changing extraction, Markdown rendering, or manifest output.
-- Do not treat `dist/`, `node_modules/`, `proofreading-output/`, or `proofreading-reviews/` as source.
+- Do not treat `dist/`, `node_modules/`, `extracts/`, or `reviews/` as source.
 - Do not edit generated output to fix source behaviour.
 
 ## Deferred Follow-Ups (not done in the consolidation commit)

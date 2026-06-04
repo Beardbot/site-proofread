@@ -20,11 +20,10 @@ import {
 } from "./prompts.js";
 import type { ManifestProofreadingConfig, PrepareOptions, PrepareResult, ReviewMode } from "./types.js";
 
-// Unified repo: extract writes packs under ./proofreading-output, so prepare-review
-// reads from the same tree by default (was ../site-copy-audit/proofreading-output
-// when the two tools lived in separate sibling repos).
-export const DEFAULT_INPUT_ROOT = "./proofreading-output";
-export const DEFAULT_OUT_ROOT = "./proofreading-reviews";
+// extract writes packs under ./extracts, so prepare-review reads from the same
+// tree by default.
+export const DEFAULT_INPUT_ROOT = "./extracts";
+export const DEFAULT_OUT_ROOT = "./reviews";
 
 export async function prepareReviewWorkspace(options: PrepareOptions): Promise<PrepareResult> {
   const inputDir = resolveInputDir(options);

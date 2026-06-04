@@ -101,7 +101,7 @@ describe("mergeConfig", () => {
         allowed_terms: ["Example Health"]
       },
       output: {
-        directory: "./proofreading-output/example-health"
+        directory: "./extracts/example-health"
       }
     });
   });
@@ -117,7 +117,7 @@ describe("mergeConfig", () => {
         name: "Example Health",
         allowedTerms: ["Example Health", "HealthTerm"],
         notes: ["Keep service names as supplied."],
-        outputDirectory: "./proofreading-output/example-health"
+        outputDirectory: "./extracts/example-health"
       });
 
       const content = await readFile(configPath, "utf8");

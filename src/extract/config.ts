@@ -58,7 +58,7 @@ export function createInitialConfig(input: InitialConfigInput): RawConfig {
   const siteName = normalizeOptionalString(input.name) ?? deriveSiteName(input.site);
   const outputDirectory =
     normalizeOptionalString(input.outputDirectory) ??
-    `./proofreading-output/${slugify(siteName, "site-copy-audit")}`;
+    `./extracts/${slugify(siteName, "site-copy-audit")}`;
   const allowedTerms = normalizeStringArray(input.allowedTerms).length
     ? normalizeStringArray(input.allowedTerms)
     : [siteName];
@@ -162,7 +162,7 @@ export function mergeConfig(raw: RawConfig, options: CliRunOptions = {}): AuditC
       animations: normalizeScreenshotAnimations(raw.screenshots?.animations)
     },
     output: {
-      directory: options.out ?? raw.output?.directory ?? "./proofreading-output/site-copy-audit",
+      directory: options.out ?? raw.output?.directory ?? "./extracts/site-copy-audit",
       markdown_only: raw.output?.markdown_only ?? true
     }
   };
@@ -248,6 +248,6 @@ function createExampleInitialConfig(): RawConfig {
     sitemaps: ["https://staging.example.com/page-sitemap.xml"],
     name: "Client Name",
     allowedTerms: ["Client Name"],
-    outputDirectory: "./proofreading-output/client-name"
+    outputDirectory: "./extracts/client-name"
   });
 }

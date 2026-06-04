@@ -78,11 +78,11 @@ program
 
 program
   .command("prepare-review")
-  .argument("[client]", "client folder name under ./proofreading-output")
+  .argument("[client]", "client folder name under ./extracts")
   .description("Create a self-contained proofreading review workspace from an extraction pack.")
   .option("--input <dir>", "explicit extraction output directory")
-  .option("--input-root <dir>", "root directory for client folder lookup", "./proofreading-output")
-  .option("--out-root <dir>", "root directory for archived review workspaces", "./proofreading-reviews")
+  .option("--input-root <dir>", "root directory for client folder lookup", "./extracts")
+  .option("--out-root <dir>", "root directory for archived review workspaces", "./reviews")
   .option("--run-id <id>", "run folder name under the client archive")
   .option("--out <dir>", "full output review workspace directory override")
   .option("--config <file>", "proofreading config YAML (defaults to proofread-agent.config.yml in the current directory)")
@@ -162,7 +162,7 @@ async function promptInitialConfig(options: CliInitOptions) {
     const outputDirectory = await promptWithDefault(
       prompts,
       "Proofreading output directory",
-      options.outputDirectory ?? `./proofreading-output/${slugify(name, "site-copy-audit")}`
+      options.outputDirectory ?? `./extracts/${slugify(name, "site-copy-audit")}`
     );
     const language = await promptWithDefault(
       prompts,
