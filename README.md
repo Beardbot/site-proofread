@@ -117,8 +117,7 @@ The test suite includes a Playwright-backed Unicode extraction regression; in re
 
 ## Status and follow-ups
 
-This is the **consolidation** commit: one repo, one CLI, one build/test, with each lane's behaviour preserved. Deliberately deferred to follow-up commits:
+This started as the **consolidation** commit: one repo, one CLI, one build/test, with each lane's behaviour preserved. Since then, the duplicated logic (mojibake detection, `slugify`, and the pack/manifest types) has been collapsed into a shared core under `src/shared/`. Still deferred to follow-up commits:
 
-- Collapsing duplicated logic (mojibake detection, `slugify`, the pack/manifest types) into a shared core.
 - Renaming the generated review workspace's internal references from `proofread-agent prepare` to `site-proofread prepare-review`, and renaming the auto-discovered `proofread-agent.config.yml`.
 - Extraction-quality fixes (main-content scoping, staging auth, quieter warnings) and an optional model-backed `review` step.

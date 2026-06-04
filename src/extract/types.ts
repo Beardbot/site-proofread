@@ -1,3 +1,9 @@
+import type { FailedPage, PackPageOutput, SkippedUrl } from "../shared/pack.js";
+
+// SkippedUrl and FailedPage are part of the shared pack contract; re-export them
+// so extract-lane modules keep importing them from "./types.js".
+export type { FailedPage, SkippedUrl };
+
 export type WaitUntil = "load" | "domcontentloaded" | "networkidle" | "commit";
 export type ScreenshotAnimations = "disabled" | "allow";
 
@@ -127,11 +133,6 @@ export interface SitemapResult {
   warnings: string[];
 }
 
-export interface SkippedUrl {
-  url: string;
-  reason: string;
-}
-
 export interface FilteredUrls {
   allowed: string[];
   skipped: SkippedUrl[];
@@ -178,19 +179,12 @@ export interface PageExtract {
   warnings: string[];
 }
 
-export interface PageOutput {
-  url: string;
+// Strict producer refinement of the shared pack contract: the extract lane
+// always populates finalUrl, status, and warnings when it writes a manifest.
+export interface PageOutput extends PackPageOutput {
   finalUrl: string;
-  title: string;
-  file: string;
-  screenshot?: string;
   status: number | null;
   warnings: string[];
-}
-
-export interface FailedPage {
-  url: string;
-  error: string;
 }
 
 export interface ManifestData {
