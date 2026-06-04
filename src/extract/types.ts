@@ -116,7 +116,7 @@ export interface CliRunOptions {
 }
 
 export interface CliInitOptions {
-  out: string;
+  out?: string;
   site?: string;
   sitemap?: string[];
   name?: string;

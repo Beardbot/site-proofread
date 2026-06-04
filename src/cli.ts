@@ -25,7 +25,7 @@ program
 program
   .command("init")
   .description("Create a minimal extraction config file.")
-  .option("-o, --out <path>", "Config file path to create.", "site-proofread.config.yml")
+  .option("-o, --out <path>", "Config file path to create. Defaults to ./configs/<name>.yml.")
   .option("--site <url>", "Staging site base URL.")
   .option("--sitemap <url>", "Sitemap URL. Repeat for multiple sitemaps.", collect, [])
   .option("--name <name>", "Site/client display name.")
@@ -36,18 +36,25 @@ program
   .option("--no-interactive", "Do not prompt for missing config values.")
   .action(async (options: CliInitOptions) => {
     if (shouldWriteExampleConfig(options)) {
-      await createExampleConfig(options.out);
-      console.log(`Created starter config: ${options.out}`);
+      const outPath = options.out ?? defaultConfigPath("Client Name");
+      await createExampleConfig(outPath);
+      console.log(`Created starter config: ${outPath}`);
       return;
     }
 
-    const input = shouldPrompt(options)
-      ? await promptInitialConfig(options)
-      : createInitialConfigInput(options);
+    if (shouldPrompt(options)) {
+      const { outPath, ...input } = await promptInitialConfig(options);
+      validateInitialConfigInput(input);
+      await createInitialConfigFile(outPath, input);
+      console.log(`Created config: ${outPath}`);
+      return;
+    }
 
+    const input = createInitialConfigInput(options);
     validateInitialConfigInput(input);
-    await createInitialConfigFile(options.out, input);
-    console.log(`Created config: ${options.out}`);
+    const outPath = options.out ?? defaultConfigPath(input.name);
+    await createInitialConfigFile(outPath, input);
+    console.log(`Created config: ${outPath}`);
   });
 
 program
@@ -168,6 +175,11 @@ async function promptInitialConfig(options: CliInitOptions) {
     const notes = options.note?.length
       ? options.note
       : await promptList(prompts, "Optional proofreading notes, comma-separated", []);
+    const outPath = await promptWithDefault(
+      prompts,
+      "Config file path",
+      options.out ?? defaultConfigPath(name)
+    );
 
     return {
       site,
@@ -176,11 +188,16 @@ async function promptInitialConfig(options: CliInitOptions) {
       language,
       allowedTerms,
       notes,
-      outputDirectory
+      outputDirectory,
+      outPath
     };
   } finally {
     prompts.close();
   }
+}
+
+function defaultConfigPath(name: string | undefined): string {
+  return `./configs/${slugify(name ?? "")}.yml`;
 }
 
 async function promptUrl(prompts: Interface, label: string, value?: string): Promise<string> {
