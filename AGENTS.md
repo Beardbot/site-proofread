@@ -83,8 +83,10 @@ node dist/cli.js prepare-review client
 
 These were intentionally left for later, behaviour-affecting commits so the merge stayed reviewable:
 
-1. **Rename generated review references.** `review/prompts.ts` still emits `proofread-agent prepare` and "Codex workspace" wording, and `review/config.ts` still auto-discovers `proofread-agent.config.yml`. Update these to `site-proofread prepare-review` / `site-proofread.config.yml` with matching test updates.
-2. **Extraction-quality fixes** from the audit: scope all extraction (buttons/links/forms/images/headings) to the main content root, add staging HTTP auth with credential redaction, and quiet false-positive warnings (decorative `alt=""`, trailing-slash redirects, substring admin-path matches).
-3. **Optional model-backed `review` step**, kept model-agnostic by default.
+1. **Extraction-quality fixes** from the audit: scope all extraction (buttons/links/forms/images/headings) to the main content root, add staging HTTP auth with credential redaction, and quiet false-positive warnings (decorative `alt=""`, trailing-slash redirects, substring admin-path matches).
+2. **Optional model-backed `review` step**, kept model-agnostic by default.
 
-Done in a later commit (no longer deferred): the duplicated mojibake detection, `slugify`, and pack/manifest types were collapsed into `src/shared/` (`mojibake.ts`, `slug.ts`, `pack.ts`).
+Done in later commits (no longer deferred):
+
+- The duplicated mojibake detection, `slugify`, and pack/manifest types were collapsed into `src/shared/` (`mojibake.ts`, `slug.ts`, `pack.ts`).
+- Generated review references were renamed off the pre-merge tool names: `review/prompts.ts` now emits `site-proofread prepare-review` and `review/config.ts` auto-discovers `site-proofread.config.yml` (the repo config file and the default fallback slug were updated to match, and the `docs/` command examples now use the unified `site-proofread extract` / `site-proofread prepare-review` names).

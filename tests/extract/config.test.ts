@@ -81,7 +81,7 @@ describe("mergeConfig", () => {
   });
 
   it("creates parent directories for generated config files", async () => {
-    const dir = await mkdtemp(path.join(tmpdir(), "site-copy-audit-"));
+    const dir = await mkdtemp(path.join(tmpdir(), "site-proofread-"));
     const configPath = path.join(dir, "configs", "client.yml");
 
     try {
@@ -118,7 +118,7 @@ describe("mergeConfig", () => {
   });
 
   it("writes minimal init YAML and relies on runtime defaults after merge", async () => {
-    const dir = await mkdtemp(path.join(tmpdir(), "site-copy-audit-"));
+    const dir = await mkdtemp(path.join(tmpdir(), "site-proofread-"));
     const configPath = path.join(dir, "configs", "client.yml");
 
     try {

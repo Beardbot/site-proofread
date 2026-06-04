@@ -1,6 +1,6 @@
-# proofread-agent.config.yml
+# site-proofread.config.yml
 #
-# Auto-discovered by `proofread-agent prepare` when run from this directory,
+# Auto-discovered by `site-proofread prepare-review` when run from this directory,
 # so it applies to every client. Override with `--config <file>`.
 # These values are merged with any config in the input pack's manifest.json.
 

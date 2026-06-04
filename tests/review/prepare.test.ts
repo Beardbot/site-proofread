@@ -36,9 +36,9 @@ describe("prepareReviewWorkspace", () => {
     await expectFile(result.workspaceDir, "AGENTS.md", "Unicode code points (U+1F534, U+1F7E0, U+1F7E1)");
     expect(result.workspaceReference).toBe("proofreading/reviews/test-site/2026-06-03");
     expect(result.kickoffPrompt).toContain("proofreading/reviews/test-site/2026-06-03/AGENTS.md");
-    await expectFile(result.workspaceDir, "README.md", "Open the `proofread-agent` project root as the Codex workspace.");
+    await expectFile(result.workspaceDir, "README.md", "Open the `site-proofread` project root as the Codex workspace.");
     await expectFile(result.workspaceDir, "README.md", "reports/pages/");
-    await expectFile(result.workspaceDir, "README.md", "proofread-agent prepare <client-name>");
+    await expectFile(result.workspaceDir, "README.md", "site-proofread prepare-review <client-name>");
     await expectFile(result.workspaceDir, "README.md", "codex-kickoff-prompt.md");
     await expectFile(result.workspaceDir, "codex-kickoff-prompt.md", "proofreading/reviews/test-site/2026-06-03/AGENTS.md");
     await expectFile(result.workspaceDir, "codex-kickoff-prompt.md", "proofreading/reviews/test-site/2026-06-03/site-pack");
@@ -156,7 +156,7 @@ describe("prepareReviewWorkspace", () => {
     const projectRoot = await makeTempDir();
     const input = await createPack(2);
     await writeFile(
-      path.join(projectRoot, "proofread-agent.config.yml"),
+      path.join(projectRoot, "site-proofread.config.yml"),
       "excluded_pages:\n  - page-2\n",
       "utf8"
     );
@@ -166,7 +166,7 @@ describe("prepareReviewWorkspace", () => {
       process.chdir(projectRoot);
       const result = await prepareReviewWorkspace({ input, out: path.join(projectRoot, "out") });
 
-      expect(result.configPath).toBe(path.join(projectRoot, "proofread-agent.config.yml"));
+      expect(result.configPath).toBe(path.join(projectRoot, "site-proofread.config.yml"));
       expect(result.excludedPageCount).toBe(1);
       expect(result.pageReportCount).toBe(1);
     } finally {
@@ -208,7 +208,7 @@ describe("prepareReviewWorkspace", () => {
 
   it("resolves client names from the default input-root style and archives under out-root", async () => {
     const root = await makeTempDir();
-    const inputRoot = path.join(root, "site-copy-audit-output");
+    const inputRoot = path.join(root, "extracts");
     const outRoot = path.join(root, "reviews");
     await createPackAt(path.join(inputRoot, "murray-bridge-medical-centre"), 1, "Copy");
 
@@ -289,7 +289,7 @@ async function createPackAt(dir: string, pageCount: number, body = "Homepage cop
 }
 
 async function makeTempDir(): Promise<string> {
-  const dir = path.join(os.tmpdir(), `proofread-agent-${Date.now()}-${Math.random()}`);
+  const dir = path.join(os.tmpdir(), `site-proofread-${Date.now()}-${Math.random()}`);
   await mkdir(dir, { recursive: true });
   return dir;
 }

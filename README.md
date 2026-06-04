@@ -165,6 +165,8 @@ npm run build
 npm test
 ```
 
+`site-proofread` (whether linked via `npm link` or run as `node dist/cli.js`) executes the compiled output in `dist/`, which is gitignored. After pulling changes that touch `src/`, run `npm run build` so the command reflects the latest source — otherwise it keeps running stale code (for example, prompting with an old default path). To skip the rebuild during development, run against the TypeScript source directly with `npm run dev -- <command>` (for example `npm run dev -- init`).
+
 The test suite includes a Playwright-backed Unicode extraction regression; in restricted environments, browser launch may need elevated permission.
 
 ## Limitations

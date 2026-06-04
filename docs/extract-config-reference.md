@@ -1,17 +1,15 @@
-> **Note:** This document describes unchanged internals carried over during the repo merge. For the current unified command names (`site-proofread extract` / `site-proofread prepare-review`), see the top-level [README](../README.md). Some examples below still use the pre-merge `site-copy-audit run` / `proofread-agent prepare` command names and the generated review workspace still references them; those are tracked for a follow-up commit.
-
 # Config Reference
 
-Configs are YAML files passed to `run`:
+Configs are YAML files passed to `extract`:
 
 ```bash
-npm run audit:run -- --config ./proofreading/configs/client-name.yml
+npm run extract -- --config ./proofreading/configs/client-name.yml
 ```
 
 or, after `npm link`:
 
 ```bash
-site-copy-audit run --config ./proofreading/configs/client-name.yml
+site-proofread extract --config ./proofreading/configs/client-name.yml
 ```
 
 ## Creating Configs
@@ -19,19 +17,19 @@ site-copy-audit run --config ./proofreading/configs/client-name.yml
 Use `init` in an interactive terminal to create a minimal config:
 
 ```bash
-npm run config:init -- --out ./proofreading/configs/client-name.yml
+npm run init -- --out ./proofreading/configs/client-name.yml
 ```
 
 or, after `npm link`:
 
 ```bash
-site-copy-audit init --out ./proofreading/configs/client-name.yml
+site-proofread init --out ./proofreading/configs/client-name.yml
 ```
 
 For non-interactive setup, provide the project values as flags:
 
 ```bash
-site-copy-audit init \
+site-proofread init \
   --out ./proofreading/configs/client-name.yml \
   --site https://staging.example.com \
   --sitemap https://staging.example.com/page-sitemap.xml \
@@ -63,7 +61,7 @@ output:
 
 ## Full Shape
 
-All supported fields are shown below. Most are optional because `run` applies defaults.
+All supported fields are shown below. Most are optional because `extract` applies defaults.
 
 ```yaml
 site:
@@ -229,12 +227,12 @@ Set `animations: "allow"` if preserving animation state matters more than stabil
 
 ## Direct CLI Overrides
 
-These options apply to `run`, not `init`.
+These options apply to `extract`, not `init`.
 
 Direct args can provide or override the site URL, sitemaps, and output directory:
 
 ```bash
-npm run audit:run -- \
+npm run extract -- \
   --site https://staging.example.com \
   --sitemap https://staging.example.com/page-sitemap.xml \
   --out ./proofreading/extracts/client-name
