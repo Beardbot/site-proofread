@@ -77,7 +77,14 @@ init  ->  extract  ->  prepare-review  ->  drive your own agent over the workspa
    site-proofread prepare-review client-name
    ```
 
-   Use `--mode basic` for a quick launch sanity check, or `--input <dir>` for a pack outside the default location.
+   Flags go after the client name. Use `--mode basic` for a quick launch sanity check (the default is `full`), or `--input <dir>` for a pack outside the default location:
+
+   ```bash
+   site-proofread prepare-review client-name --mode basic
+   site-proofread prepare-review --input ./proofreading-output/client-name --mode basic
+   ```
+
+   Pass either a client name or `--input`, not both.
 
 4. **Run the review** by pointing your AI agent at the generated workspace using the printed kick-off prompt (also saved as `codex-kickoff-prompt.md`). The agent fills in the page reports and final report; the tool itself does not.
 
