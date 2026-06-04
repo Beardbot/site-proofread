@@ -29,6 +29,8 @@ Do not report mojibake based only on terminal output. Some terminals may render 
 
 If text appears corrupted, verify the actual file contents as UTF-8 before creating a proofreading finding. Treat generated likely-mojibake warnings as extraction/manual-review issues unless the UTF-8 file contents themselves contain corrupted visible copy.
 
+${renderEncodingVerificationNote()}
+
 ## Report Output Encoding
 
 ${renderReportOutputEncodingRules()}
@@ -47,9 +49,13 @@ Use \`site-pack/proofreading-input.md\` as the page index.
 Use \`site-pack/manifest.json\` and \`site-pack/manifest.md\` as the source of truth for included, skipped, failed, and warning pages.
 Use files in \`site-pack/pages/\` as the proofreading source.
 
+The batch prompts in \`batches/\` and \`merge-prompt.md\` define the authoritative review scope. \`site-pack/pages/\` may also contain pages excluded from review (for example a privacy policy) that have no batch entry and no page report; review only the pages listed in the batch prompts.
+
 Screenshots in \`site-pack/screenshots/\` are supporting references only. Do not use screenshots as a substitute for reviewing the extracted Markdown copy.
 
 ## Workflow
+
+The \`reports/pages/*.md\` files and \`reports/final-report.md\` already exist as \`_Pending._\` placeholders. They are scaffolds to complete by replacing the placeholder body, not drafts to verify against the source.
 
 1. Read this \`AGENTS.md\`.
 2. Read \`README.md\` and \`review-prompt.md\`.
@@ -68,8 +74,19 @@ Screenshots in \`site-pack/screenshots/\` are supporting references only. Do not
 - Put the current text and the suggested correction in separate Markdown blockquotes, each led by a bold \`Current:\` / \`Suggested:\` label, then write the reason as one italic line.
 - Separate every finding, page block, and top-level section with a \`---\` divider, and present the summary as a Markdown table.
 - Order findings by severity: High first, then Medium, then Low.
+- Quote \`Current:\` excerpts exactly from the source copy; do not use ellipses or shorten the excerpt.
 - Avoid speculative or subjective recommendations.
 - Before finishing, verify the page reports and final report do not contain question marks that replaced source smart punctuation, quotes, apostrophes, or dashes.
+
+## Before You Finish
+
+Run this checklist before reporting completion:
+
+- Replace every \`_Pending._\` placeholder: no file in \`reports/pages/\` and not \`reports/final-report.md\` still contains \`_Pending._\`.
+- Remove all template tokens, such as \`[short finding title]\`, \`[exact current text]\`, and \`[suggested correction]\`.
+- Confirm only pages listed in the batch prompts have reports; do not add reports for pages excluded from review.
+- Keep \`Current:\` excerpts exact, with no ellipses or shortened quotes.
+- Confirm no \`?\` characters replaced smart punctuation and the 🔴 🟠 🟡 severity badges are intact.
 `;
 }
 
@@ -106,7 +123,7 @@ Proofread the prepared site package in \`${workspaceReference}/site-pack\`.
 
 Review mode: ${renderModeLabel(mode)}.
 
-Create the page reports in \`${workspaceReference}/reports/pages\`, then create \`${workspaceReference}/reports/final-report.md\`.
+Complete the pending page-report placeholders in \`${workspaceReference}/reports/pages\`, then complete \`${workspaceReference}/reports/final-report.md\`.
 
 Do not crawl the live website.
 Do not rewrite for style.
@@ -150,6 +167,8 @@ ${renderDictionary(dictionary)}
 ## Encoding Verification
 
 If a terminal renders smart punctuation as mojibake, such as \`${renderMojibakeExample()}\`, do not report that as a copy issue unless the file contents read as UTF-8 contain the corrupted text. Generated likely-mojibake warnings belong in extraction/manual-review sections unless the visible copy itself is confirmed corrupted.
+
+${renderEncodingVerificationNote()}
 
 ## Report Output Encoding
 
@@ -473,6 +492,8 @@ ${renderDictionary(dictionary)}
 
 If a terminal renders smart punctuation as mojibake, such as \`${renderMojibakeExample()}\`, do not report that as a copy issue unless the file contents read as UTF-8 contain the corrupted text. Generated likely-mojibake warnings belong in extraction/manual-review sections unless the visible copy itself is confirmed corrupted.
 
+${renderEncodingVerificationNote()}
+
 ## Report Output Encoding
 
 ${renderReportOutputEncodingRules()}
@@ -663,6 +684,10 @@ Check for spelling, grammar, unclear wording, inconsistent terminology, inconsis
 
 function renderMojibakeExample(): string {
   return "Women\u00e2\u20ac\u2122s Health";
+}
+
+function renderEncodingVerificationNote(): string {
+  return `The severity badges \ud83d\udd34 \ud83d\udfe0 \ud83d\udfe1 used throughout the templates are valid UTF-8 emoji and may display as boxes or mojibake in some terminals; copy them verbatim from the templates and do not "fix" or report them. Verify file contents by reading the files directly with your file tools, or with a non-interactive Node script using explicit \`utf8\` encoding, rather than judging by terminal output. Interactive REPLs may be unavailable in sandboxed environments.`;
 }
 
 function renderReportOutputEncodingRules(): string {

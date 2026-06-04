@@ -27,6 +27,11 @@ describe("prepareReviewWorkspace", () => {
     await expectFile(result.workspaceDir, "AGENTS.md", "Write report Markdown files as UTF-8.");
     await expectFile(result.workspaceDir, "AGENTS.md", "question marks that replaced source smart punctuation");
     await expectFile(result.workspaceDir, "AGENTS.md", "avoid PowerShell for report generation");
+    await expectFile(result.workspaceDir, "AGENTS.md", "scaffolds to complete by replacing the placeholder body");
+    await expectFile(result.workspaceDir, "AGENTS.md", "define the authoritative review scope");
+    await expectFile(result.workspaceDir, "AGENTS.md", "## Before You Finish");
+    await expectFile(result.workspaceDir, "AGENTS.md", "do not use ellipses or shorten the excerpt");
+    await expectFile(result.workspaceDir, "AGENTS.md", "display as boxes or mojibake");
     expect(result.workspaceReference).toBe("proofreading-reviews/test-site/2026-06-03");
     expect(result.kickoffPrompt).toContain("proofreading-reviews/test-site/2026-06-03/AGENTS.md");
     await expectFile(result.workspaceDir, "README.md", "Open the `proofread-agent` project root as the Codex workspace.");
@@ -36,12 +41,14 @@ describe("prepareReviewWorkspace", () => {
     await expectFile(result.workspaceDir, "codex-kickoff-prompt.md", "proofreading-reviews/test-site/2026-06-03/AGENTS.md");
     await expectFile(result.workspaceDir, "codex-kickoff-prompt.md", "proofreading-reviews/test-site/2026-06-03/site-pack");
     await expectFile(result.workspaceDir, "codex-kickoff-prompt.md", "reports/pages");
+    await expectFile(result.workspaceDir, "codex-kickoff-prompt.md", "Complete the pending page-report placeholders");
     await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "Do not treat URL slugs as proofreading content.");
     await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "reports/pages/001-home-report.md");
     await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "Order findings by severity: High first, then Medium, then Low.");
     await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "blockquoted Current and Suggested text");
     await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "Do not use a shell or terminal workflow that replaces non-ASCII punctuation");
     await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "temporary Node.js `.mjs` script");
+    await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "display as boxes or mojibake");
     await expectFile(result.workspaceDir, "page-report-template.md", "**Open page:**");
     await expectFile(result.workspaceDir, "page-report-template.md", "## 🔴 Immediate attention");
     await expectFile(result.workspaceDir, "page-report-template.md", "### 🔴 High severity");

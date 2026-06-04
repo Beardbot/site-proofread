@@ -89,11 +89,15 @@ The tool reads `proofread-agent.config.yml` (or `.yaml`) from the current direct
 
 Excluded pages are still copied into `site-pack/` for reference, but get no batch prompt and no page report. They are listed under `Excluded From Review` in `manual-review-notes.md` and an `Excluded from review` section in the final report, so an exclusion is always visible rather than silent.
 
+Because `site-pack/pages/` can therefore include pages that are out of scope, the batch prompts and `merge-prompt.md` — not the `site-pack/pages/` listing — define which pages the review agent should report on.
+
 ## Encoding Safeguards
 
 `prepare` reads text pack files as UTF-8 and preserves valid smart punctuation, curly quotes, and en dashes through the copied `site-pack/` files and generated prompts.
 
 Some terminals may display valid UTF-8 smart punctuation as mojibake. The generated review instructions tell Codex to verify actual UTF-8 file contents before reporting any mojibake as a proofreading issue.
+
+The severity badges (🔴 🟠 🟡) in the templates are also valid UTF-8 emoji that can render as boxes or mojibake in some terminals; the instructions tell agents to copy them verbatim and not treat them as corruption. To verify content, read files directly (or with a non-interactive Node script using explicit `utf8`) rather than judging by terminal output, since interactive REPLs may be unavailable in sandboxed environments.
 
 Generated review instructions also tell Codex to write page reports and final reports as UTF-8, preserve smart punctuation copied from source text, and scan finished reports for suspicious `?` characters that may have replaced quotes, apostrophes, or dashes.
 
@@ -209,10 +213,20 @@ The number of batch prompt files depends on the size of the extracted pack. Smal
 
 `site-pack/agent-proofreading-prompt.md` and `site-pack/screenshots/` are copied when they exist in the input pack.
 
-`site-pack/` is a self-contained copy of the extracted content pack. `batches/` contains the prompts Codex should review. `reports/pages/` contains matching placeholder page reports, and `reports/final-report.md` is the merged report.
+`site-pack/` is a self-contained copy of the extracted content pack. `batches/` contains the prompts Codex should review. `reports/pages/` contains matching placeholder page reports, and `reports/final-report.md` is the merged report. Each placeholder starts with a `_Pending._` marker and is meant to be completed (its body replaced), not treated as an existing draft to verify.
 
 The generated report templates are severity-first for launch triage. Page reports and the final report open with a summary table and an `Immediate attention` section for High severity findings, then list findings from High to Low. Each finding uses a severity-badged heading (🔴 High, 🟠 Medium, 🟡 Low) with a short title, blockquoted `Current:` and `Suggested:` text, and an italic one-line reason. `---` dividers separate every finding and section so the boundaries between pages, issues, and severity levels are easy to scan.
 
 The templates include an output encoding check so completed reports preserve UTF-8 punctuation and do not silently replace quotes, apostrophes, en dashes, or em dashes with `?` characters.
 
 When a generated workspace has many page reports, a scripted merge can be useful. Use Node.js with explicit UTF-8 reads/writes for this. Avoid `powershell -File` for scripts that contain copied source text, curly quotes, en dashes, or emoji; if PowerShell is unavoidable, keep the script ASCII-only and explicitly control file encoding.
+
+## Agent Completion Checklist
+
+The generated `AGENTS.md` includes a "Before You Finish" checklist the review agent should run before reporting completion. It captures the discovery work that otherwise has to be re-derived each run:
+
+- Treat the existing `reports/pages/*.md` and `reports/final-report.md` files as `_Pending._` placeholders to complete, not drafts to verify.
+- Replace every `_Pending._` marker and remove template tokens such as `[short finding title]`, `[exact current text]`, and `[suggested correction]`.
+- Use the batch prompts and `merge-prompt.md` as the authoritative scope; `site-pack/pages/` can include excluded pages (for example a privacy policy) with no report.
+- Keep `Current:` excerpts exact — no ellipses or shortened quotes.
+- Confirm no `?` characters replaced smart punctuation, and the 🔴 🟠 🟡 severity badges are intact.
