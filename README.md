@@ -22,36 +22,37 @@ The quickest path from zero to a finished review. Run every command from the pro
 ```bash
 npm install
 npm run build
+npm link
 npx playwright install chromium
 ```
 
-`npm install` downloads dependencies, `npm run build` compiles the tool, and the last line installs the headless browser used to read pages.
+`npm install` downloads dependencies, `npm run build` compiles the tool, `npm link` makes the `site-proofread` command available in your terminal, and the last line installs the headless browser used to read pages.
 
-> The steps below run the tool as `node dist/cli.js <command>`, which always works after building. If you'd rather type the shorter `site-proofread <command>`, run `npm link` once first.
+> If `npm link` reports a permissions error, or `site-proofread` isn't found afterwards, you can run any command below as `node dist/cli.js <command>` instead (for example `node dist/cli.js init`), or use the npm scripts (`npm run init`, `npm run extract -- ...`).
 
 **2. Create a config — `init`**
 
 ```bash
-node dist/cli.js init
+site-proofread init
 ```
 
-Answer the prompts (staging site URL, site name, sitemap URL(s), and so on). It saves a config under `./configs/` and prints the exact path. A sitemap URL usually ends in `sitemap.xml` — for example `https://staging.example.com/page-sitemap.xml`. Ask the site's developer if you're not sure where it is.
+Answer the prompts (staging site URL, site name, sitemap URL(s), and so on). It saves a config under `./proofreading/configs/` and prints the exact path. A sitemap URL usually ends in `sitemap.xml` — for example `https://staging.example.com/page-sitemap.xml`. Ask the site's developer if you're not sure where it is.
 
 **3. Extract the content pack — `extract`** (use the config path that `init` printed)
 
 ```bash
-node dist/cli.js extract --config ./configs/your-site.yml
+site-proofread extract --config ./proofreading/configs/your-site.yml
 ```
 
-A headless browser visits each page listed in the sitemap and writes its copy — plus full-page screenshots — to `./proofreading-output/your-site/`.
+A headless browser visits each page listed in the sitemap and writes its copy — plus full-page screenshots — to `./proofreading/extracts/your-site/`.
 
-**4. Build the review workspace — `prepare-review`** (use the folder name `extract` created under `./proofreading-output/`)
+**4. Build the review workspace — `prepare-review`** (use the folder name `extract` created under `./proofreading/extracts/`)
 
 ```bash
-node dist/cli.js prepare-review your-site
+site-proofread prepare-review your-site
 ```
 
-This creates a self-contained workspace under `./proofreading-reviews/your-site/<date>/` and prints a kick-off prompt (also saved there as `codex-kickoff-prompt.md`). Add `--mode basic` for a fast pre-launch sanity check instead of a full review.
+This creates a self-contained workspace under `./proofreading/reviews/your-site/<date>/` and prints a kick-off prompt (also saved there as `codex-kickoff-prompt.md`). Add `--mode basic` for a fast pre-launch sanity check instead of a full review.
 
 **5. Run the review with your agent**
 
@@ -78,17 +79,17 @@ init  ->  extract  ->  prepare-review  ->  drive your own agent over the workspa
 1. **Create a config.** Interactive prompts, or pass flags:
 
    ```bash
-   site-proofread init --out ./configs/client-name.yml \
+   site-proofread init --out ./proofreading/configs/client-name.yml \
      --site https://staging.example.com \
      --sitemap https://staging.example.com/page-sitemap.xml
    ```
 
-   `init` with no flags in a TTY prompts for the site URL, name, sitemaps, output directory, language, allowed terms, and the config file path, then writes a minimal config (defaults fill in at run time). When you don't pass `--out` (or accept the prompt default), the config is written to `./configs/<name>.yml`.
+   `init` with no flags in a TTY prompts for the site URL, name, sitemaps, output directory, language, allowed terms, and the config file path, then writes a minimal config (defaults fill in at run time). When you don't pass `--out` (or accept the prompt default), the config is written to `./proofreading/configs/<name>.yml`.
 
 2. **Extract the content pack:**
 
    ```bash
-   site-proofread extract --config ./configs/client-name.yml
+   site-proofread extract --config ./proofreading/configs/client-name.yml
    ```
 
    Or with direct arguments:
@@ -97,12 +98,12 @@ init  ->  extract  ->  prepare-review  ->  drive your own agent over the workspa
    site-proofread extract \
      --site https://staging.example.com \
      --sitemap https://staging.example.com/page-sitemap.xml \
-     --out ./proofreading-output/client-name
+     --out ./proofreading/extracts/client-name
    ```
 
    On Windows PowerShell, use backtick (`` ` ``) line continuations instead of `\`.
 
-3. **Prepare a review workspace** from the pack (resolved under `./proofreading-output/<client>` by default):
+3. **Prepare a review workspace** from the pack (resolved under `./proofreading/extracts/<client>` by default):
 
    ```bash
    site-proofread prepare-review client-name
@@ -112,7 +113,7 @@ init  ->  extract  ->  prepare-review  ->  drive your own agent over the workspa
 
    ```bash
    site-proofread prepare-review client-name --mode basic
-   site-proofread prepare-review --input ./proofreading-output/client-name --mode basic
+   site-proofread prepare-review --input ./proofreading/extracts/client-name --mode basic
    ```
 
    Pass either a client name or `--input`, not both.
@@ -129,7 +130,20 @@ init  ->  extract  ->  prepare-review  ->  drive your own agent over the workspa
 - `screenshots/NNN-slug.png` — full-page screenshots when enabled.
 - `README.md` / `agent-proofreading-prompt.md` — pack notes and a standalone proofreading prompt.
 
-`prepare-review` writes a workspace under `./proofreading-reviews/<client>/<run-id>/` containing `site-pack/` (a copy of the pack), `batches/` (review prompts), `reports/pages/` (per-page placeholders), severity-first templates, and a `merge-prompt.md`. See [docs/review-workflow.md](docs/review-workflow.md).
+`prepare-review` writes a workspace under `./proofreading/reviews/<client>/<run-id>/` containing `site-pack/` (a copy of the pack), `batches/` (review prompts), `reports/pages/` (per-page placeholders), severity-first templates, and a `merge-prompt.md`. See [docs/review-workflow.md](docs/review-workflow.md).
+
+## Screenshots and sticky elements
+
+`extract` captures full-page screenshots. Sticky or fixed elements — sticky headers, cookie bars, chat widgets — can otherwise repeat down the stitched full-page image. List their CSS selectors under `extract.exclude_selectors` in your config to hide them in the screenshots:
+
+```yaml
+extract:
+  exclude_selectors:
+    - 'header[data-elementor-type="header"] .elementor-sticky'
+    - '.cookie-banner'
+```
+
+Note that the same selectors also remove those elements from the **extracted copy**, so don't exclude something whose text you still want proofread. See [docs/extract-config-reference.md](docs/extract-config-reference.md) for the defaults and more examples.
 
 ## Safety boundaries
 

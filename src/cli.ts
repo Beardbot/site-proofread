@@ -25,7 +25,7 @@ program
 program
   .command("init")
   .description("Create a minimal extraction config file.")
-  .option("-o, --out <path>", "Config file path to create. Defaults to ./configs/<name>.yml.")
+  .option("-o, --out <path>", "Config file path to create. Defaults to ./proofreading/configs/<name>.yml.")
   .option("--site <url>", "Staging site base URL.")
   .option("--sitemap <url>", "Sitemap URL. Repeat for multiple sitemaps.", collect, [])
   .option("--name <name>", "Site/client display name.")
@@ -78,11 +78,11 @@ program
 
 program
   .command("prepare-review")
-  .argument("[client]", "client folder name under ./proofreading-output")
+  .argument("[client]", "client folder name under ./proofreading/extracts")
   .description("Create a self-contained proofreading review workspace from an extraction pack.")
   .option("--input <dir>", "explicit extraction output directory")
-  .option("--input-root <dir>", "root directory for client folder lookup", "./proofreading-output")
-  .option("--out-root <dir>", "root directory for archived review workspaces", "./proofreading-reviews")
+  .option("--input-root <dir>", "root directory for client folder lookup", "./proofreading/extracts")
+  .option("--out-root <dir>", "root directory for archived review workspaces", "./proofreading/reviews")
   .option("--run-id <id>", "run folder name under the client archive")
   .option("--out <dir>", "full output review workspace directory override")
   .option("--config <file>", "proofreading config YAML (defaults to proofread-agent.config.yml in the current directory)")
@@ -162,7 +162,7 @@ async function promptInitialConfig(options: CliInitOptions) {
     const outputDirectory = await promptWithDefault(
       prompts,
       "Proofreading output directory",
-      options.outputDirectory ?? `./proofreading-output/${slugify(name, "site-copy-audit")}`
+      options.outputDirectory ?? `./proofreading/extracts/${slugify(name, "site-copy-audit")}`
     );
     const language = await promptWithDefault(
       prompts,
@@ -197,7 +197,7 @@ async function promptInitialConfig(options: CliInitOptions) {
 }
 
 function defaultConfigPath(name: string | undefined): string {
-  return `./configs/${slugify(name ?? "")}.yml`;
+  return `./proofreading/configs/${slugify(name ?? "")}.yml`;
 }
 
 async function promptUrl(prompts: Interface, label: string, value?: string): Promise<string> {
