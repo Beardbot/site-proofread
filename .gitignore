@@ -1,0 +1,11 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+proofreading-output/
+proofreading-reviews/
+tmp/
+site-proofread.config.yml
+configs/*.yml
+configs/*.yaml
+*.log

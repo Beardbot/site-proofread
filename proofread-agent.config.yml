@@ -1,0 +1,47 @@
+# proofread-agent.config.yml
+#
+# Auto-discovered by `proofread-agent prepare` when run from this directory,
+# so it applies to every client. Override with `--config <file>`.
+# These values are merged with any config in the input pack's manifest.json.
+
+# Default review language.
+language: Australian English
+
+# Pages to skip during proofreading. Best for templated boilerplate that is
+# identical across client sites and does not need reviewing every run.
+#
+# Matching is case-insensitive against each page's URL, file path, and slug:
+#   - a plain value is a substring match (e.g. privacy-policy)
+#   - a value containing * is an anchored glob (e.g. "*/legal/*")
+#
+# Excluded pages are still copied into site-pack/ for reference and are listed
+# under "Excluded From Review" in the reports, so the exclusion is never silent.
+excluded_pages:
+  - privacy-policy
+  # - terms-conditions
+  # - terms-of-use
+  # - booking-cancellation-policy
+
+# Terminology the proofreader should accept rather than flag.
+# allowed_terms:
+#   client_names: []
+#   staff_names: []
+#   brand_terms: []
+#   product_names: []
+#   industry_terms: []
+#   intentional_spellings: []
+
+# Preferred spelling/wording (use X, avoid Y).
+# preferred_terms:
+#   - use: immunisation
+#     avoid:
+#       - immunization
+
+# Exact strings that should never be reported as findings.
+# ignored_findings:
+#   - text: Caring. Compassionate. Friendly.
+#     reason: Approved brand phrase
+
+# Free-form guidance passed through to the reviewer.
+# notes:
+#   - Keep clinical service names as supplied by the client.

@@ -1,0 +1,218 @@
+> **Note:** This document describes unchanged internals carried over during the repo merge. For the current unified command names (`site-proofread extract` / `site-proofread prepare-review`), see the top-level [README](../README.md). Some examples below still use the pre-merge `site-copy-audit run` / `proofread-agent prepare` command names and the generated review workspace still references them; those are tracked for a follow-up commit.
+
+# Proofread Agent Workflow
+
+`proofread-agent` prepares a Codex-ready review workspace from a `site-copy-audit` output pack. It does not call an AI model, crawl websites, open a browser, or edit website content.
+
+## Normal Client Workflow
+
+1. Run `site-copy-audit` for the client.
+2. Confirm the extracted pack exists at:
+
+   ```text
+   ../site-copy-audit/proofreading-output/<client-name>
+   ```
+
+3. From this repo, prepare the review workspace:
+
+   ```bash
+   npm run workspace:prepare -- <client-name>
+   ```
+
+   If the CLI has been linked with `npm link`, you can use:
+
+   ```bash
+   proofread-agent prepare <client-name>
+   ```
+
+4. Open the `proofread-agent` project root as the Codex workspace. The generated review workspace path is:
+
+   ```text
+   ./proofreading-reviews/<client-slug>/<run-id>
+   ```
+
+5. Tell Codex with the generated kick-off prompt. For the default archive path, it will look like:
+
+   ```text
+   Use the review instructions in `proofreading-reviews/<client-slug>/<run-id>/AGENTS.md`.
+
+   Proofread the prepared site package in `proofreading-reviews/<client-slug>/<run-id>/site-pack`.
+
+   Review mode: Full proofreading review.
+
+   Create the page reports in `proofreading-reviews/<client-slug>/<run-id>/reports/pages`, then create `proofreading-reviews/<client-slug>/<run-id>/reports/final-report.md`.
+
+   Do not crawl the live website.
+   Do not rewrite for style.
+   Only report likely launch-quality copy issues.
+   ```
+
+   The command prints the full prompt in the terminal and also saves it in `codex-kickoff-prompt.md` inside the generated review workspace.
+
+6. Codex should use each batch prompt in `batches/` to complete the matching page reports in `reports/pages/`, then create:
+
+   ```text
+   reports/final-report.md
+   ```
+
+7. Review the final report. High severity findings appear first in `Immediate attention`, and all findings are ordered High, Medium, then Low.
+
+## Review Modes
+
+The default mode is a full proofreading review:
+
+```bash
+proofread-agent prepare <client-name> --mode full
+```
+
+For a short pre-launch check, use basic mode:
+
+```bash
+proofread-agent prepare <client-name> --mode basic
+```
+
+Basic mode is designed for quick launch QA. It asks Codex to flag glaring spelling mistakes, basic grammar errors, obvious punctuation errors, broken or truncated visible sentences, placeholder text, staging/test copy, and other issues that would look clearly wrong immediately before launch. It avoids deeper style, tone, minor phrasing, broad consistency, SEO metadata, and image alt text unless the issue is obvious and launch-critical.
+
+## Excluding Pages From Review
+
+Templated boilerplate that is identical across client sites — privacy policy, terms and conditions, and similar — usually does not need proofreading on every run. Add an `excluded_pages` list to your config file to skip it:
+
+```yaml
+# proofread-agent.config.yml (in the directory you run prepare from)
+excluded_pages:
+  - privacy-policy        # substring match against URL/file/slug
+  - /terms-conditions/    # exact path
+  - "*/legal/*"           # glob
+```
+
+The tool reads `proofread-agent.config.yml` (or `.yaml`) from the current directory by default, so one shared file covers every client; pass `--config <file>` to use a different one, or set `excluded_pages` in the `manifest.json` `config.proofreading` block. Values from the manifest and the config file are merged.
+
+Excluded pages are still copied into `site-pack/` for reference, but get no batch prompt and no page report. They are listed under `Excluded From Review` in `manual-review-notes.md` and an `Excluded from review` section in the final report, so an exclusion is always visible rather than silent.
+
+## Encoding Safeguards
+
+`prepare` reads text pack files as UTF-8 and preserves valid smart punctuation, curly quotes, and en dashes through the copied `site-pack/` files and generated prompts.
+
+Some terminals may display valid UTF-8 smart punctuation as mojibake. The generated review instructions tell Codex to verify actual UTF-8 file contents before reporting any mojibake as a proofreading issue.
+
+Generated review instructions also tell Codex to write page reports and final reports as UTF-8, preserve smart punctuation copied from source text, and scan finished reports for suspicious `?` characters that may have replaced quotes, apostrophes, or dashes.
+
+On Windows, avoid PowerShell for report generation when copied source text contains smart punctuation. Windows PowerShell can read script files with the wrong encoding, treat smart quotes as string delimiters, or lose `$` variables through nested command quoting. Prefer `apply_patch` for small report edits, or a temporary Node.js `.mjs` script that reads and writes files with explicit `utf8` encoding for bulk report generation.
+
+The tool scans input pack text files for likely mojibake signatures such as `â€™`, `â€“`, `Ã`, `Â`, and `�`. Confirmed signatures are surfaced as extraction/manual-review warnings in `manual-review-notes.md` and page warning context.
+
+## Default Path Inference
+
+When you pass a client name, the CLI resolves input from:
+
+```text
+../site-copy-audit/proofreading-output/<client-name>
+```
+
+The output archive path is inferred as:
+
+```text
+./proofreading-reviews/<client-slug>/<run-id>
+```
+
+`<client-slug>` is inferred from `manifest.json.site.name`, then falls back to the input folder name.
+
+`<run-id>` is inferred from `manifest.json.extractionDate`, then falls back to today's date.
+
+Running `prepare` overwrites the selected output workspace so stale prompts and reports do not linger between runs.
+
+## Custom Paths
+
+Use `--input` when the pack is not under the normal sibling `site-copy-audit` output folder:
+
+```bash
+npm run workspace:prepare -- --input D:/path/to/custom-pack
+```
+
+Change the normal input/output roots:
+
+```bash
+proofread-agent prepare client-name --input-root path/to/proofreading-output --out-root path/to/proofreading-reviews
+```
+
+Set a custom run folder:
+
+```bash
+proofread-agent prepare client-name --run-id 2026-06-03-round-2
+```
+
+Override the final workspace path completely:
+
+```bash
+proofread-agent prepare --input ./pack --out ./review-workspace
+```
+
+Use either a client name or `--input`, not both.
+
+## Install And Linking
+
+Inside this repo, after dependencies are installed and the project is built, no global link is required:
+
+```bash
+npm install
+npm run build
+npm run workspace:prepare -- client-name
+```
+
+You only need `npm install` again after a fresh clone, missing `node_modules/`, or dependency changes.
+
+Use `npm link` only if you want the bare command available from other terminal locations:
+
+```bash
+npm link
+proofread-agent prepare client-name
+```
+
+## Generated Workspace
+
+The default generated workspace path is:
+
+```text
+proofreading-reviews/<client-slug>/<run-id>/
+```
+
+Inside that folder:
+
+```text
+AGENTS.md
+README.md
+codex-kickoff-prompt.md
+review-prompt.md
+report-template.md
+page-report-template.md
+manual-review-notes.md
+merge-prompt.md
+site-pack/
+  README.md
+  manifest.md
+  manifest.json
+  proofreading-input.md
+  agent-proofreading-prompt.md (when present)
+  pages/
+  screenshots/ (when present)
+batches/
+  batch-001-prompt.md
+  batch-002-prompt.md
+reports/
+  pages/
+    001-home-report.md
+    002-privacy-policy-report.md
+  final-report.md
+```
+
+The number of batch prompt files depends on the size of the extracted pack. Small packs still get one batch prompt. Each extracted page gets one page report placeholder under `reports/pages/`, and each page report includes the extracted page URL as a Markdown link for the person fixing content.
+
+`site-pack/agent-proofreading-prompt.md` and `site-pack/screenshots/` are copied when they exist in the input pack.
+
+`site-pack/` is a self-contained copy of the extracted content pack. `batches/` contains the prompts Codex should review. `reports/pages/` contains matching placeholder page reports, and `reports/final-report.md` is the merged report.
+
+The generated report templates are severity-first for launch triage. Page reports and the final report open with a summary table and an `Immediate attention` section for High severity findings, then list findings from High to Low. Each finding uses a severity-badged heading (🔴 High, 🟠 Medium, 🟡 Low) with a short title, blockquoted `Current:` and `Suggested:` text, and an italic one-line reason. `---` dividers separate every finding and section so the boundaries between pages, issues, and severity levels are easy to scan.
+
+The templates include an output encoding check so completed reports preserve UTF-8 punctuation and do not silently replace quotes, apostrophes, en dashes, or em dashes with `?` characters.
+
+When a generated workspace has many page reports, a scripted merge can be useful. Use Node.js with explicit UTF-8 reads/writes for this. Avoid `powershell -File` for scripts that contain copied source text, curly quotes, en dashes, or emoji; if PowerShell is unavoidable, keep the script ASCII-only and explicitly control file encoding.
