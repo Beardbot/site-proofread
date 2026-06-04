@@ -5,6 +5,5 @@ coverage/
 proofreading-output/
 proofreading-reviews/
 tmp/
-site-proofread.config.yml
 configs/
 *.log
