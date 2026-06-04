@@ -7,36 +7,67 @@ Local TypeScript CLI for internal pre-launch website copy QA. It runs in two sta
 
 The tool is **model-agnostic**: it never calls an AI model, crawls arbitrary links, authenticates, submits forms, or edits website content. It produces deterministic artifacts; a human or an AI agent does the actual proofreading.
 
-> This repo is the consolidation of the former `site-copy-audit` (extraction) and `proofread-agent` (review prep) repos into one tool with a shared build, test, and CLI. See [Command mapping](#command-mapping) below.
+## Getting started
 
-## Install
+The quickest path from zero to a finished review. Run every command from the project folder (the one containing this README). If you're new to the command line, follow the steps in order — each one is safe to copy and paste.
+
+**Prerequisites**
+
+- **Node.js 20 or newer** — check your version with `node --version`. If it's missing or older, install the LTS build from <https://nodejs.org>.
+- **A terminal** — PowerShell on Windows, or Terminal on macOS/Linux.
+- **An AI coding agent** for the final step (for example [Codex](https://developers.openai.com/codex/cli/) or [Claude Code](https://www.claude.com/product/claude-code)). This tool *prepares* the review; your agent *performs* it.
+
+**1. Install and build (one time)**
 
 ```bash
 npm install
 npm run build
-```
-
-Playwright installs browser support through its package. If Chromium is missing, run:
-
-```bash
 npx playwright install chromium
 ```
 
-Optionally link the `site-proofread` command globally:
+`npm install` downloads dependencies, `npm run build` compiles the tool, and the last line installs the headless browser used to read pages.
+
+> The steps below run the tool as `node dist/cli.js <command>`, which always works after building. If you'd rather type the shorter `site-proofread <command>`, run `npm link` once first.
+
+**2. Create a config — `init`**
 
 ```bash
-npm link
+node dist/cli.js init
 ```
 
-## Command mapping
+Answer the prompts (staging site URL, site name, sitemap URL(s), and so on). It saves a config under `./configs/` and prints the exact path. A sitemap URL usually ends in `sitemap.xml` — for example `https://staging.example.com/page-sitemap.xml`. Ask the site's developer if you're not sure where it is.
 
-| Unified command | Former command | Purpose |
-| --- | --- | --- |
-| `site-proofread init` | `site-copy-audit init` | Create a minimal extraction config |
-| `site-proofread extract` | `site-copy-audit run` | Extract a content pack from staging |
-| `site-proofread prepare-review` | `proofread-agent prepare` | Build a review workspace from a pack |
+**3. Extract the content pack — `extract`** (use the config path that `init` printed)
 
-Without `npm link`, use the npm scripts (`npm run init`, `npm run extract -- ...`, `npm run prepare-review -- ...`) or `node dist/cli.js <command>`.
+```bash
+node dist/cli.js extract --config ./configs/your-site.yml
+```
+
+A headless browser visits each page listed in the sitemap and writes its copy — plus full-page screenshots — to `./proofreading-output/your-site/`.
+
+**4. Build the review workspace — `prepare-review`** (use the folder name `extract` created under `./proofreading-output/`)
+
+```bash
+node dist/cli.js prepare-review your-site
+```
+
+This creates a self-contained workspace under `./proofreading-reviews/your-site/<date>/` and prints a kick-off prompt (also saved there as `codex-kickoff-prompt.md`). Add `--mode basic` for a fast pre-launch sanity check instead of a full review.
+
+**5. Run the review with your agent**
+
+Open your AI coding agent in this project and give it the printed kick-off prompt (or paste the contents of `codex-kickoff-prompt.md`). The agent reads the workspace's `AGENTS.md`, completes each page report, and writes the merged report at `reports/final-report.md`. Open that file to read the findings — highest severity first.
+
+That's the whole loop. The sections below cover each command in more detail and the files you get.
+
+## Commands
+
+| Command | What it does |
+| --- | --- |
+| `site-proofread init` | Create a minimal extraction config |
+| `site-proofread extract` | Extract a content pack from a staging site |
+| `site-proofread prepare-review` | Build a review workspace from a pack |
+
+Without `npm link`, run these as `node dist/cli.js <command>`, or use the npm scripts (`npm run init`, `npm run extract -- ...`, `npm run prepare-review -- ...`).
 
 ## Workflow
 
@@ -122,9 +153,8 @@ npm test
 
 The test suite includes a Playwright-backed Unicode extraction regression; in restricted environments, browser launch may need elevated permission.
 
-## Status and follow-ups
+## Limitations
 
-This started as the **consolidation** commit: one repo, one CLI, one build/test, with each lane's behaviour preserved. Since then, the duplicated logic (mojibake detection, `slugify`, and the pack/manifest types) has been collapsed into a shared core under `src/shared/`. Still deferred to follow-up commits:
-
-- Renaming the generated review workspace's internal references from `proofread-agent prepare` to `site-proofread prepare-review`, and renaming the auto-discovered `proofread-agent.config.yml`.
-- Extraction-quality fixes (main-content scoping, staging auth, quieter warnings) and an optional model-backed `review` step.
+- The tool reads only sitemap-listed pages and never logs in, so staging sites behind a login or HTTP authentication can't be reached yet (see [Safety boundaries](#safety-boundaries)).
+- Extraction warnings (short pages, missing titles, possible encoding issues) are quality hints to help you spot gaps — they are not proofreading findings, and can be a little noisy.
+- A built-in, model-backed `review` step is planned; for now your own AI agent performs the review.
