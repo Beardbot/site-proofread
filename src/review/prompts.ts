@@ -238,7 +238,7 @@ Listed High → Medium → Low. Within the same severity, keep findings in page 
 >
 > [suggested correction]
 
-*Reason: [why this matters at launch].*
+*Reason: [why this matters at launch]*
 
 ---
 
@@ -254,7 +254,7 @@ Listed High → Medium → Low. Within the same severity, keep findings in page 
 >
 > [suggested correction]
 
-*Reason: [why this matters at launch].*
+*Reason: [why this matters at launch]*
 
 ---
 
@@ -270,7 +270,7 @@ Listed High → Medium → Low. Within the same severity, keep findings in page 
 >
 > [suggested correction]
 
-*Reason: [why this matters at launch].*
+*Reason: [why this matters at launch]*
 
 ---
 
@@ -336,7 +336,7 @@ Grouped High → Medium → Low; within each severity, keep findings in page ord
 >
 > [suggested correction]
 
-*Reason: [why this matters at launch].*
+*Reason: [why this matters at launch]*
 
 ---
 
@@ -354,7 +354,7 @@ Grouped High → Medium → Low; within each severity, keep findings in page ord
 >
 > [suggested correction]
 
-*Reason: [why this matters at launch].*
+*Reason: [why this matters at launch]*
 
 ---
 
@@ -372,7 +372,7 @@ Grouped High → Medium → Low; within each severity, keep findings in page ord
 >
 > [suggested correction]
 
-*Reason: [why this matters at launch].*
+*Reason: [why this matters at launch]*
 
 ---
 
@@ -530,6 +530,7 @@ Use \`report-template.md\` as the final report structure.
 ## Merge Rules
 
 - Consolidate duplicate findings.
+- When consolidating, keep one finding per distinct source excerpt; never merge in a way that forces paraphrasing or truncating an exact Current excerpt.
 - Preserve exact page URLs and page file paths.
 - Keep proofreading findings separate from extraction and manual-review issues.
 - Order findings by severity: High first, then Medium, then Low.
@@ -687,7 +688,7 @@ function renderMojibakeExample(): string {
 }
 
 function renderEncodingVerificationNote(): string {
-  return `The severity badges \ud83d\udd34 \ud83d\udfe0 \ud83d\udfe1 used throughout the templates are valid UTF-8 emoji and may display as boxes or mojibake in some terminals; copy them verbatim from the templates and do not "fix" or report them. Verify file contents by reading the files directly with your file tools, or with a non-interactive Node script using explicit \`utf8\` encoding, rather than judging by terminal output. Interactive REPLs may be unavailable in sandboxed environments.`;
+  return `The severity badges \ud83d\udd34 \ud83d\udfe0 \ud83d\udfe1 used throughout the templates are valid UTF-8 emoji and may display as boxes or mojibake in some terminals; copy them verbatim from the templates and do not "fix" or report them. Verify file contents by reading the files directly with your file tools, or with a non-interactive Node script using explicit \`utf8\` encoding, rather than judging by terminal output. Do not start an interactive REPL (the in-app Node REPL or PowerShell) to inspect content; these are routinely blocked in sandboxes and only cost you a failed step, so use the direct file read or non-interactive command above instead.`;
 }
 
 function renderReportOutputEncodingRules(): string {
@@ -696,6 +697,8 @@ function renderReportOutputEncodingRules(): string {
 Do not use a shell or terminal workflow that replaces non-ASCII punctuation with \`?\` characters when creating report files. If you generate reports with a script, ensure the script source and file writes are UTF-8 safe.
 
 On Windows, avoid PowerShell for report generation when copied source text contains smart punctuation. Windows PowerShell may parse script files with the wrong encoding, treat smart quotes as string delimiters, or lose \`$\` variables through nested command quoting. Prefer \`apply_patch\` for small report edits, or a temporary Node.js \`.mjs\` script that reads and writes files with explicit \`utf8\` encoding for bulk report generation.
+
+When a generation script builds report Markdown inside a JavaScript template literal, remember the Markdown's own backticks and dollar-brace sequences will end or interpolate the literal; escape them, or sidestep the issue by assembling the report from an array of lines joined with newlines or by reading the Markdown from a data file. Write the severity badges from their Unicode code points (U+1F534, U+1F7E0, U+1F7E1) rather than pasting the emoji, so the script source stays ASCII-safe.
 
 Before finishing, read the generated report files back as UTF-8 and scan for suspicious \`?\` characters in copied source text or suggested corrections. Fix any punctuation replacement before reporting completion.`;
 }

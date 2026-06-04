@@ -32,6 +32,8 @@ describe("prepareReviewWorkspace", () => {
     await expectFile(result.workspaceDir, "AGENTS.md", "## Before You Finish");
     await expectFile(result.workspaceDir, "AGENTS.md", "do not use ellipses or shorten the excerpt");
     await expectFile(result.workspaceDir, "AGENTS.md", "display as boxes or mojibake");
+    await expectFile(result.workspaceDir, "AGENTS.md", "Do not start an interactive REPL");
+    await expectFile(result.workspaceDir, "AGENTS.md", "Unicode code points (U+1F534, U+1F7E0, U+1F7E1)");
     expect(result.workspaceReference).toBe("proofreading-reviews/test-site/2026-06-03");
     expect(result.kickoffPrompt).toContain("proofreading-reviews/test-site/2026-06-03/AGENTS.md");
     await expectFile(result.workspaceDir, "README.md", "Open the `proofread-agent` project root as the Codex workspace.");
@@ -57,6 +59,7 @@ describe("prepareReviewWorkspace", () => {
     await expectFile(result.workspaceDir, "page-report-template.md", "> **Suggested:**");
     await expectFile(result.workspaceDir, "page-report-template.md", "| Metric | Count |");
     await expectFile(result.workspaceDir, "page-report-template.md", "## Output encoding check");
+    await expectFile(result.workspaceDir, "page-report-template.md", "*Reason: [why this matters at launch]*");
     await expectFile(result.workspaceDir, "report-template.md", "## Findings by severity");
     await expectFile(result.workspaceDir, "report-template.md", "## 🔴 Immediate attention");
     await expectFile(result.workspaceDir, "report-template.md", "### 🔴 High severity");
@@ -65,6 +68,7 @@ describe("prepareReviewWorkspace", () => {
     await expectFile(result.workspaceDir, "report-template.md", "## Output encoding check");
     await expectFile(result.workspaceDir, "merge-prompt.md", "Put every High severity finding in the `Immediate attention` section");
     await expectFile(result.workspaceDir, "merge-prompt.md", "Preserve UTF-8 smart punctuation from page reports");
+    await expectFile(result.workspaceDir, "merge-prompt.md", "keep one finding per distinct source excerpt");
     await expectFile(result.workspaceDir, "reports/pages/001-home-report.md", "**Open page:** [https://example.com/page-1/](https://example.com/page-1/)");
     await expectFile(result.workspaceDir, "reports/final-report.md", "Pending.");
     await expectFile(result.workspaceDir, "site-pack/manifest.json", "Test Site");

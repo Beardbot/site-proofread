@@ -97,11 +97,13 @@ Because `site-pack/pages/` can therefore include pages that are out of scope, th
 
 Some terminals may display valid UTF-8 smart punctuation as mojibake. The generated review instructions tell Codex to verify actual UTF-8 file contents before reporting any mojibake as a proofreading issue.
 
-The severity badges (🔴 🟠 🟡) in the templates are also valid UTF-8 emoji that can render as boxes or mojibake in some terminals; the instructions tell agents to copy them verbatim and not treat them as corruption. To verify content, read files directly (or with a non-interactive Node script using explicit `utf8`) rather than judging by terminal output, since interactive REPLs may be unavailable in sandboxed environments.
+The severity badges (🔴 🟠 🟡) in the templates are also valid UTF-8 emoji that can render as boxes or mojibake in some terminals; the instructions tell agents to copy them verbatim and not treat them as corruption. To verify content, read files directly (or with a non-interactive Node script using explicit `utf8`) rather than judging by terminal output. Do not start an interactive REPL (the in-app Node REPL or PowerShell) to inspect content; these are routinely blocked in sandboxes, so use a direct file read or a non-interactive Node command instead.
 
 Generated review instructions also tell Codex to write page reports and final reports as UTF-8, preserve smart punctuation copied from source text, and scan finished reports for suspicious `?` characters that may have replaced quotes, apostrophes, or dashes.
 
 On Windows, avoid PowerShell for report generation when copied source text contains smart punctuation. Windows PowerShell can read script files with the wrong encoding, treat smart quotes as string delimiters, or lose `$` variables through nested command quoting. Prefer `apply_patch` for small report edits, or a temporary Node.js `.mjs` script that reads and writes files with explicit `utf8` encoding for bulk report generation.
+
+When a generation script builds report Markdown inside a JavaScript template literal, the Markdown's own backticks and dollar-brace sequences will end or interpolate the literal; escape them, or sidestep the issue by assembling the report from an array of lines joined with newlines or by reading the Markdown from a data file. Write the severity badges from their Unicode code points (U+1F534, U+1F7E0, U+1F7E1) rather than pasting the emoji to keep the script source ASCII-safe.
 
 The tool scans input pack text files for likely mojibake signatures such as `â€™`, `â€“`, `Ã`, `Â`, and `�`. Confirmed signatures are surfaced as extraction/manual-review warnings in `manual-review-notes.md` and page warning context.
 
