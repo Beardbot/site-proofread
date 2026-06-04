@@ -6,6 +6,5 @@ proofreading-output/
 proofreading-reviews/
 tmp/
 site-proofread.config.yml
-configs/*.yml
-configs/*.yaml
+configs/
 *.log
