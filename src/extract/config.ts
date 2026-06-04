@@ -16,6 +16,9 @@ export const DEFAULT_EXCLUDE_SELECTORS = [
   ".grecaptcha-badge",
   ".cky-consent-container",
   ".cookie-notice",
+  // Elementor clones the header into a sticky variant on scroll; hide the
+  // duplicate so it does not repeat in screenshots or extracted copy.
+  'header[data-elementor-type="header"] .elementor-sticky',
   "script",
   "style",
   "noscript"
