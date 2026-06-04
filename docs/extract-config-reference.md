@@ -5,13 +5,13 @@
 Configs are YAML files passed to `run`:
 
 ```bash
-npm run audit:run -- --config ./configs/client-name.yml
+npm run audit:run -- --config ./proofreading/configs/client-name.yml
 ```
 
 or, after `npm link`:
 
 ```bash
-site-copy-audit run --config ./configs/client-name.yml
+site-copy-audit run --config ./proofreading/configs/client-name.yml
 ```
 
 ## Creating Configs
@@ -19,28 +19,28 @@ site-copy-audit run --config ./configs/client-name.yml
 Use `init` in an interactive terminal to create a minimal config:
 
 ```bash
-npm run config:init -- --out ./configs/client-name.yml
+npm run config:init -- --out ./proofreading/configs/client-name.yml
 ```
 
 or, after `npm link`:
 
 ```bash
-site-copy-audit init --out ./configs/client-name.yml
+site-copy-audit init --out ./proofreading/configs/client-name.yml
 ```
 
 For non-interactive setup, provide the project values as flags:
 
 ```bash
 site-copy-audit init \
-  --out ./configs/client-name.yml \
+  --out ./proofreading/configs/client-name.yml \
   --site https://staging.example.com \
   --sitemap https://staging.example.com/page-sitemap.xml \
   --name "Client Name" \
   --term "Client Name" \
-  --output-directory ./extracts/client-name
+  --output-directory ./proofreading/extracts/client-name
 ```
 
-`--sitemap`, `--term`, and `--note` can be repeated. `--out` is the config file path; when omitted it defaults to `./configs/<name>.yml` (the slugified site/client name). `--output-directory` is the generated proofreading pack directory stored in the config.
+`--sitemap`, `--term`, and `--note` can be repeated. `--out` is the config file path; when omitted it defaults to `./proofreading/configs/<name>.yml` (the slugified site/client name). `--output-directory` is the generated proofreading pack directory stored in the config.
 
 The generated config intentionally omits fields that have runtime defaults. A typical new config looks like:
 
@@ -58,7 +58,7 @@ proofreading:
     - "Client Name"
 
 output:
-  directory: "./extracts/client-name"
+  directory: "./proofreading/extracts/client-name"
 ```
 
 ## Full Shape
@@ -121,7 +121,7 @@ screenshots:
   animations: "disabled"
 
 output:
-  directory: "./extracts/client-name"
+  directory: "./proofreading/extracts/client-name"
   markdown_only: true
 ```
 
@@ -186,16 +186,16 @@ The direct-child selector `header[data-elementor-type="header"] > .elementor-sti
 Use one config per client or run:
 
 ```text
-configs/client-name.yml
-configs/client-name-round-2.yml
-configs/another-client.yml
+proofreading/configs/client-name.yml
+proofreading/configs/client-name-round-2.yml
+proofreading/configs/another-client.yml
 ```
 
 Use a distinct `output.directory` for clean historical runs:
 
 ```yaml
 output:
-  directory: "./extracts/client-name/2026-06-03"
+  directory: "./proofreading/extracts/client-name/2026-06-03"
 ```
 
 If the same output directory is reused, matching generated page and screenshot filenames can be overwritten. Old unrelated files are not deleted.
@@ -234,7 +234,7 @@ Direct args can provide or override the site URL, sitemaps, and output directory
 npm run audit:run -- \
   --site https://staging.example.com \
   --sitemap https://staging.example.com/page-sitemap.xml \
-  --out ./extracts/client-name
+  --out ./proofreading/extracts/client-name
 ```
 
 Config values still supply the remaining defaults.

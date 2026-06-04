@@ -10,7 +10,7 @@
 2. Confirm the extracted pack exists at:
 
    ```text
-   ../site-copy-audit/extracts/<client-name>
+   ./proofreading/extracts/<client-name>
    ```
 
 3. From this repo, prepare the review workspace:
@@ -28,19 +28,19 @@
 4. Open the `proofread-agent` project root as the Codex workspace. The generated review workspace path is:
 
    ```text
-   ./reviews/<client-slug>/<run-id>
+   ./proofreading/reviews/<client-slug>/<run-id>
    ```
 
 5. Tell Codex with the generated kick-off prompt. For the default archive path, it will look like:
 
    ```text
-   Use the review instructions in `reviews/<client-slug>/<run-id>/AGENTS.md`.
+   Use the review instructions in `proofreading/reviews/<client-slug>/<run-id>/AGENTS.md`.
 
-   Proofread the prepared site package in `reviews/<client-slug>/<run-id>/site-pack`.
+   Proofread the prepared site package in `proofreading/reviews/<client-slug>/<run-id>/site-pack`.
 
    Review mode: Full proofreading review.
 
-   Create the page reports in `reviews/<client-slug>/<run-id>/reports/pages`, then create `reviews/<client-slug>/<run-id>/reports/final-report.md`.
+   Create the page reports in `proofreading/reviews/<client-slug>/<run-id>/reports/pages`, then create `proofreading/reviews/<client-slug>/<run-id>/reports/final-report.md`.
 
    Do not crawl the live website.
    Do not rewrite for style.
@@ -112,13 +112,13 @@ The tool scans input pack text files for likely mojibake signatures such as `Ã¢â
 When you pass a client name, the CLI resolves input from:
 
 ```text
-../site-copy-audit/extracts/<client-name>
+./proofreading/extracts/<client-name>
 ```
 
 The output archive path is inferred as:
 
 ```text
-./reviews/<client-slug>/<run-id>
+./proofreading/reviews/<client-slug>/<run-id>
 ```
 
 `<client-slug>` is inferred from `manifest.json.site.name`, then falls back to the input folder name.
@@ -179,7 +179,7 @@ proofread-agent prepare client-name
 The default generated workspace path is:
 
 ```text
-reviews/<client-slug>/<run-id>/
+proofreading/reviews/<client-slug>/<run-id>/
 ```
 
 Inside that folder:

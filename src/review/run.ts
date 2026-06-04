@@ -20,10 +20,10 @@ import {
 } from "./prompts.js";
 import type { ManifestProofreadingConfig, PrepareOptions, PrepareResult, ReviewMode } from "./types.js";
 
-// extract writes packs under ./extracts, so prepare-review reads from the same
+// extract writes packs under ./proofreading/extracts, so prepare-review reads from the same
 // tree by default.
-export const DEFAULT_INPUT_ROOT = "./extracts";
-export const DEFAULT_OUT_ROOT = "./reviews";
+export const DEFAULT_INPUT_ROOT = "./proofreading/extracts";
+export const DEFAULT_OUT_ROOT = "./proofreading/reviews";
 
 export async function prepareReviewWorkspace(options: PrepareOptions): Promise<PrepareResult> {
   const inputDir = resolveInputDir(options);
