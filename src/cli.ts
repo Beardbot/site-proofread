@@ -11,8 +11,9 @@ import {
 import { runAudit, type RunProgress } from "./extract/run.js";
 import { formatProgressLine } from "./extract/progress.js";
 import type { CliInitOptions } from "./extract/types.js";
+import { runPipeline } from "./pipeline/run.js";
 import { prepareReviewWorkspace } from "./review/run.js";
-import type { ReviewMode } from "./review/types.js";
+import type { PrepareResult, ReviewMode } from "./review/types.js";
 import { slugify } from "./shared/slug.js";
 
 const program = new Command();
@@ -35,26 +36,7 @@ program
   .option("--output-directory <path>", "Generated proofreading pack directory.")
   .option("--no-interactive", "Do not prompt for missing config values.")
   .action(async (options: CliInitOptions) => {
-    if (shouldWriteExampleConfig(options)) {
-      const outPath = options.out ?? defaultConfigPath("Client Name");
-      await createExampleConfig(outPath);
-      console.log(`Created starter config: ${outPath}`);
-      return;
-    }
-
-    if (shouldPrompt(options)) {
-      const { outPath, ...input } = await promptInitialConfig(options);
-      validateInitialConfigInput(input);
-      await createInitialConfigFile(outPath, input);
-      console.log(`Created config: ${outPath}`);
-      return;
-    }
-
-    const input = createInitialConfigInput(options);
-    validateInitialConfigInput(input);
-    const outPath = options.out ?? defaultConfigPath(input.name);
-    await createInitialConfigFile(outPath, input);
-    console.log(`Created config: ${outPath}`);
+    await resolveOrCreateConfig(options);
   });
 
 program
@@ -100,20 +82,50 @@ program
   }) => {
     try {
       const result = await prepareReviewWorkspace({ ...options, client });
-      console.log(`Proofreading review workspace created: ${result.workspaceDir}`);
-      console.log(`Client: ${result.clientSlug}`);
-      console.log(`Run: ${result.runId}`);
-      console.log(`Config: ${result.configPath ?? "none (manifest config only)"}`);
-      console.log(`Mode: ${result.mode}`);
-      console.log(`Batch prompts to follow: ${result.batchCount}`);
-      console.log(`Page reports to complete: ${result.pageReportCount}`);
-      console.log(`Pages excluded from review: ${result.excludedPageCount}`);
-      console.log(`Reports directory: ${result.reportsDir}`);
-      console.log("");
-      console.log("Kick-off prompt:");
-      console.log(result.kickoffPrompt.trim());
-      console.log("");
-      console.log(`Saved kick-off prompt: ${result.kickoffPromptPath}`);
+      printPrepareReviewSummary(result);
+    } catch (error) {
+      console.error(error instanceof Error ? error.message : String(error));
+      process.exitCode = 1;
+    }
+  });
+
+program
+  .command("run")
+  .description("Run init, extract, and prepare-review in one model-free pipeline.")
+  .option("-c, --config <path>", "Path to an existing extraction config file; skips init.")
+  .option("-o, --out <path>", "Config file path to create when --config is absent. Defaults to ./proofreading/configs/<name>.yml.")
+  .option("--site <url>", "Staging site base URL.")
+  .option("--sitemap <url>", "Sitemap URL. Repeat for multiple sitemaps.", collect, [])
+  .option("--name <name>", "Site/client display name.")
+  .option("--language <language>", "Proofreading handoff language.", "Australian English")
+  .option("--term <term>", "Allowed proofreading term. Repeat for multiple terms.", collect, [])
+  .option("--note <note>", "Proofreading handoff note. Repeat for multiple notes.", collect, [])
+  .option("--output-directory <path>", "Generated proofreading pack directory.")
+  .option("--no-interactive", "Do not prompt for missing config values.")
+  .option("--force", "Re-extract even when the configured output directory already has a manifest.json.")
+  .option("--review-config <file>", "Proofreading config YAML for the review stage; defaults to site-proofread.config.yml auto-discovery.")
+  .option("--mode <mode>", "review depth: full or basic", parseReviewMode, "full")
+  .option("--max-batch-chars <number>", "maximum estimated characters per batch", parsePositiveInteger)
+  .action(async (options: CliPipelineOptions, command: Command) => {
+    try {
+      if (options.config && hasExplicitInitFlags(command)) {
+        console.warn("Ignoring init options because --config was provided.");
+      }
+
+      const configPath = await resolveOrCreateConfig(options, { allowExampleConfig: false });
+      const status = createTerminalStatus();
+      const result = await runPipeline({
+        configPath,
+        force: options.force,
+        reviewConfigPath: options.reviewConfig,
+        mode: options.mode,
+        maxBatchChars: options.maxBatchChars,
+        onProgress: status.update,
+        log: (message) => console.log(message)
+      });
+
+      status.done("Pipeline complete.");
+      printPrepareReviewSummary(result);
     } catch (error) {
       console.error(error instanceof Error ? error.message : String(error));
       process.exitCode = 1;
@@ -144,6 +156,76 @@ function shouldWriteExampleConfig(options: CliInitOptions): boolean {
     !options.term?.length &&
     !options.note?.length
   );
+}
+
+interface CliPipelineOptions extends CliInitOptions {
+  config?: string;
+  force?: boolean;
+  reviewConfig?: string;
+  mode?: ReviewMode;
+  maxBatchChars?: number;
+}
+
+async function resolveOrCreateConfig(
+  options: CliInitOptions & { config?: string },
+  settings: { allowExampleConfig?: boolean } = {}
+): Promise<string> {
+  if (options.config) {
+    return options.config;
+  }
+
+  if (settings.allowExampleConfig !== false && shouldWriteExampleConfig(options)) {
+    const outPath = options.out ?? defaultConfigPath("Client Name");
+    await createExampleConfig(outPath);
+    console.log(`Created starter config: ${outPath}`);
+    return outPath;
+  }
+
+  if (shouldPrompt(options)) {
+    const { outPath, ...input } = await promptInitialConfig(options);
+    validateInitialConfigInput(input);
+    await createInitialConfigFile(outPath, input);
+    console.log(`Created config: ${outPath}`);
+    return outPath;
+  }
+
+  const input = createInitialConfigInput(options);
+  validateInitialConfigInput(input);
+  const outPath = options.out ?? defaultConfigPath(input.name);
+  await createInitialConfigFile(outPath, input);
+  console.log(`Created config: ${outPath}`);
+  return outPath;
+}
+
+function hasExplicitInitFlags(command: Command): boolean {
+  return [
+    "out",
+    "site",
+    "sitemap",
+    "name",
+    "language",
+    "term",
+    "note",
+    "outputDirectory",
+    "interactive"
+  ].some((name) => command.getOptionValueSource(name) === "cli");
+}
+
+function printPrepareReviewSummary(result: PrepareResult): void {
+  console.log(`Proofreading review workspace created: ${result.workspaceDir}`);
+  console.log(`Client: ${result.clientSlug}`);
+  console.log(`Run: ${result.runId}`);
+  console.log(`Config: ${result.configPath ?? "none (manifest config only)"}`);
+  console.log(`Mode: ${result.mode}`);
+  console.log(`Batch prompts to follow: ${result.batchCount}`);
+  console.log(`Page reports to complete: ${result.pageReportCount}`);
+  console.log(`Pages excluded from review: ${result.excludedPageCount}`);
+  console.log(`Reports directory: ${result.reportsDir}`);
+  console.log("");
+  console.log("Kick-off prompt:");
+  console.log(result.kickoffPrompt.trim());
+  console.log("");
+  console.log(`Saved kick-off prompt: ${result.kickoffPromptPath}`);
 }
 
 async function promptInitialConfig(options: CliInitOptions) {

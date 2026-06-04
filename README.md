@@ -30,6 +30,8 @@ npx playwright install chromium
 
 > If `npm link` reports a permissions error, or `site-proofread` isn't found afterwards, you can run any command below as `node dist/cli.js <command>` instead (for example `node dist/cli.js init`), or use the npm scripts (`npm run init`, `npm run extract -- ...`).
 
+**Quick path:** after installing, `site-proofread run` walks through config creation, extraction, and review workspace preparation in one command.
+
 **2. Create a config — `init`**
 
 ```bash
@@ -64,6 +66,7 @@ That's the whole loop. The sections below cover each command in more detail and 
 
 | Command | What it does |
 | --- | --- |
+| `site-proofread run` | Run config creation, extraction, and review workspace preparation in one invocation |
 | `site-proofread init` | Create a minimal extraction config |
 | `site-proofread extract` | Extract a content pack from a staging site |
 | `site-proofread prepare-review` | Build a review workspace from a pack |
@@ -73,8 +76,24 @@ Without `npm link`, run these as `node dist/cli.js <command>`, or use the npm sc
 ## Workflow
 
 ```text
+run  ->  drive your own agent over the workspace
+```
+
+Or use the primitive commands separately:
+
+```text
 init  ->  extract  ->  prepare-review  ->  drive your own agent over the workspace
 ```
+
+**One-command pipeline:**
+
+```bash
+site-proofread run
+```
+
+`run` prompts for the same extraction config values as `init`, extracts the pack, then prepares the review workspace. Pass `--config ./proofreading/configs/client-name.yml` to reuse an existing extraction config and skip config creation. If the configured output directory already contains `manifest.json`, `run` reuses that pack; pass `--force` to re-extract before preparing the review.
+
+The pipeline keeps the two config files distinct: `--config` is the per-client extraction config, while `--review-config` is the proofreading dictionary/config used by `prepare-review`. If `--review-config` is omitted, the review stage still auto-discovers `site-proofread.config.yml` in the project root and merges it with the pack manifest's proofreading block.
 
 1. **Create a config.** Interactive prompts, or pass flags:
 
