@@ -9,24 +9,57 @@ The tool is **model-agnostic**: it never calls an AI model, crawls arbitrary lin
 
 > This repo is the consolidation of the former `site-copy-audit` (extraction) and `proofread-agent` (review prep) repos into one tool with a shared build, test, and CLI. See [Command mapping](#command-mapping) below.
 
-## Install
+## Getting started
+
+The quickest path from zero to a finished review. Run every command from the project folder (the one containing this README). If you're new to the command line, follow the steps in order — each one is safe to copy and paste.
+
+**Prerequisites**
+
+- **Node.js 20 or newer** — check your version with `node --version`. If it's missing or older, install the LTS build from <https://nodejs.org>.
+- **A terminal** — PowerShell on Windows, or Terminal on macOS/Linux.
+- **An AI coding agent** for the final step (for example [Codex](https://developers.openai.com/codex/cli/) or [Claude Code](https://www.claude.com/product/claude-code)). This tool *prepares* the review; your agent *performs* it.
+
+**1. Install and build (one time)**
 
 ```bash
 npm install
 npm run build
-```
-
-Playwright installs browser support through its package. If Chromium is missing, run:
-
-```bash
 npx playwright install chromium
 ```
 
-Optionally link the `site-proofread` command globally:
+`npm install` downloads dependencies, `npm run build` compiles the tool, and the last line installs the headless browser used to read pages.
+
+> The steps below run the tool as `node dist/cli.js <command>`, which always works after building. If you'd rather type the shorter `site-proofread <command>`, run `npm link` once first.
+
+**2. Create a config — `init`**
 
 ```bash
-npm link
+node dist/cli.js init
 ```
+
+Answer the prompts (staging site URL, site name, sitemap URL(s), and so on). It saves a config under `./configs/` and prints the exact path. A sitemap URL usually ends in `sitemap.xml` — for example `https://staging.example.com/page-sitemap.xml`. Ask the site's developer if you're not sure where it is.
+
+**3. Extract the content pack — `extract`** (use the config path that `init` printed)
+
+```bash
+node dist/cli.js extract --config ./configs/your-site.yml
+```
+
+A headless browser visits each page listed in the sitemap and writes its copy — plus full-page screenshots — to `./proofreading-output/your-site/`.
+
+**4. Build the review workspace — `prepare-review`** (use the folder name `extract` created under `./proofreading-output/`)
+
+```bash
+node dist/cli.js prepare-review your-site
+```
+
+This creates a self-contained workspace under `./proofreading-reviews/your-site/<date>/` and prints a kick-off prompt (also saved there as `codex-kickoff-prompt.md`). Add `--mode basic` for a fast pre-launch sanity check instead of a full review.
+
+**5. Run the review with your agent**
+
+Open your AI coding agent in this project and give it the printed kick-off prompt (or paste the contents of `codex-kickoff-prompt.md`). The agent reads the workspace's `AGENTS.md`, completes each page report, and writes the merged report at `reports/final-report.md`. Open that file to read the findings — highest severity first.
+
+That's the whole loop. The sections below cover each command in more detail and the files you get.
 
 ## Command mapping
 
