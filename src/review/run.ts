@@ -4,6 +4,7 @@ import { createBatches, DEFAULT_MAX_BATCH_CHARS } from "./batching.js";
 import { loadDictionaryConfig, resolveConfigPath } from "./config.js";
 import { partitionExcludedPages } from "./exclusions.js";
 import { copyPackToWorkspace, loadPack, writeTextFile } from "./pack.js";
+import { slugify } from "../shared/slug.js";
 import {
   renderAgentsMd,
   renderBatchPrompt,
@@ -128,16 +129,6 @@ function inferClientSlug(siteName: string | undefined, inputDir: string, clientN
 function inferRunId(extractionDate: string | undefined): string {
   const datePrefix = extractionDate?.match(/^\d{4}-\d{2}-\d{2}/)?.[0];
   return datePrefix ?? new Date().toISOString().slice(0, 10);
-}
-
-function slugify(value: string | undefined): string {
-  if (!value) return "";
-  return value
-    .normalize("NFKD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
 }
 
 function formatWorkspaceReference(workspaceDir: string): string {

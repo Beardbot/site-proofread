@@ -50,16 +50,20 @@ node dist/cli.js prepare-review client
   - `run.ts`: extraction orchestration, browser lifecycle, screenshots, output writing.
   - `extractor.ts`: DOM extraction and pragmatic hidden-content handling.
   - `markdown.ts`: page Markdown, manifests, proofreading input, README, prompt renderers.
-  - `warnings.ts`: extraction QA warnings (incl. mojibake detection).
-  - `filenames.ts` / `progress.ts` / `types.ts`: stable filenames, progress formatting, shared extract types.
+  - `warnings.ts`: extraction QA warnings (uses shared mojibake detection).
+  - `filenames.ts` / `progress.ts` / `types.ts`: stable filenames, progress formatting, and extract types (its strict producer `PageOutput` refines the shared pack contract).
 - `src/review/`: review lane (formerly `proofread-agent/src`).
   - `run.ts`: review-workspace orchestration; `DEFAULT_INPUT_ROOT` now `./proofreading-output`.
   - `pack.ts`: pack loading/validation and copy (incl. mojibake scanning).
   - `batching.ts` / `exclusions.ts`: deterministic batching and page exclusion.
   - `prompts.ts`: review prompts, severity-first report templates, manual-review notes.
   - `config.ts`: dictionary config load/merge and default config discovery.
-  - `mojibake.ts` / `types.ts`: review-lane mojibake detection and types.
-- `tests/extract/` and `tests/review/`: focused unit tests per lane, plus a Playwright-backed Unicode regression under `tests/extract/`.
+  - `types.ts`: review-lane types; re-exports the shared pack contract as its tolerant consumer types.
+- `src/shared/`: cross-lane core shared by both lanes.
+  - `mojibake.ts`: canonical mojibake signatures and detection/rendering helpers (union of both lanes' former lists).
+  - `slug.ts`: canonical `slugify` (NFKD diacritic-stripping; caller-supplied fallback string).
+  - `pack.ts`: canonical on-disk pack/manifest contract; tolerant consumer types, refined into strict producer types by the extract lane.
+- `tests/extract/`, `tests/review/`, and `tests/shared/`: focused unit tests per lane and for the shared core, plus a Playwright-backed Unicode regression under `tests/extract/`.
 
 ## Working Rules For Agents
 
@@ -79,7 +83,8 @@ node dist/cli.js prepare-review client
 
 These were intentionally left for later, behaviour-affecting commits so the merge stayed reviewable:
 
-1. **Collapse duplicated logic into a shared core.** Mojibake detection (`extract/warnings.ts` has a longer signature list than `review/mojibake.ts`), `slugify`, and the pack/manifest types are duplicated across lanes and have drifted. Merging them changes behaviour, so each deserves its own commit.
-2. **Rename generated review references.** `review/prompts.ts` still emits `proofread-agent prepare` and "Codex workspace" wording, and `review/config.ts` still auto-discovers `proofread-agent.config.yml`. Update these to `site-proofread prepare-review` / `site-proofread.config.yml` with matching test updates.
-3. **Extraction-quality fixes** from the audit: scope all extraction (buttons/links/forms/images/headings) to the main content root, add staging HTTP auth with credential redaction, and quiet false-positive warnings (decorative `alt=""`, trailing-slash redirects, substring admin-path matches).
-4. **Optional model-backed `review` step**, kept model-agnostic by default.
+1. **Rename generated review references.** `review/prompts.ts` still emits `proofread-agent prepare` and "Codex workspace" wording, and `review/config.ts` still auto-discovers `proofread-agent.config.yml`. Update these to `site-proofread prepare-review` / `site-proofread.config.yml` with matching test updates.
+2. **Extraction-quality fixes** from the audit: scope all extraction (buttons/links/forms/images/headings) to the main content root, add staging HTTP auth with credential redaction, and quiet false-positive warnings (decorative `alt=""`, trailing-slash redirects, substring admin-path matches).
+3. **Optional model-backed `review` step**, kept model-agnostic by default.
+
+Done in a later commit (no longer deferred): the duplicated mojibake detection, `slugify`, and pack/manifest types were collapsed into `src/shared/` (`mojibake.ts`, `slug.ts`, `pack.ts`).

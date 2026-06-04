@@ -1,3 +1,14 @@
+// The pack contract lives in src/shared/pack.ts so both lanes agree on it. The
+// review lane consumes packs tolerantly, so its PageOutput is the canonical
+// (all-optional) PackPageOutput rather than the stricter extract producer type.
+import type {
+  FailedPage,
+  ManifestProofreadingConfig,
+  PackPageOutput,
+  SiteCopyManifest,
+  SkippedUrl
+} from "../shared/pack.js";
+
 export interface PrepareOptions {
   client?: string;
   input?: string;
@@ -28,56 +39,8 @@ export interface PrepareResult {
 
 export type ReviewMode = "full" | "basic";
 
-export interface PageOutput {
-  url: string;
-  finalUrl?: string;
-  title: string;
-  file: string;
-  screenshot?: string;
-  status?: number | null;
-  warnings?: string[];
-}
-
-export interface SkippedUrl {
-  url: string;
-  reason: string;
-}
-
-export interface FailedPage {
-  url: string;
-  error: string;
-}
-
-export interface SiteCopyManifest {
-  site?: {
-    name?: string;
-    staging_url?: string;
-  };
-  extractionDate?: string;
-  sitemapUrlsUsed?: string[];
-  counts?: {
-    urlsFound?: number;
-    pagesExtracted?: number;
-    pagesSkipped?: number;
-    pagesFailed?: number;
-  };
-  pages?: PageOutput[];
-  skipped?: SkippedUrl[];
-  failed?: FailedPage[];
-  sitemapWarnings?: string[];
-  extractionWarningsSummary?: Record<string, number>;
-  config?: {
-    proofreading?: ManifestProofreadingConfig;
-    dictionary?: ManifestProofreadingConfig;
-  };
-}
-
-export interface ManifestProofreadingConfig {
-  language?: string;
-  allowed_terms?: string[];
-  excluded_pages?: string[];
-  notes?: string[];
-}
+export type { FailedPage, ManifestProofreadingConfig, SiteCopyManifest, SkippedUrl };
+export type PageOutput = PackPageOutput;
 
 export interface RawDictionaryConfig {
   language?: string;

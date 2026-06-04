@@ -1,6 +1,5 @@
+import { containsMojibake } from "../shared/mojibake.js";
 import type { PageExtract } from "./types.js";
-
-export const MOJIBAKE_SIGNATURES = ["â€™", "â€œ", "â€", "â€“", "Ã", "Â", "�"];
 
 export function generatePageWarnings(page: PageExtract): string[] {
   const warnings = new Set(page.warnings);
@@ -38,10 +37,6 @@ export function generatePageWarnings(page: PageExtract): string[] {
   }
 
   return [...warnings];
-}
-
-export function containsMojibake(value: string): boolean {
-  return MOJIBAKE_SIGNATURES.some((signature) => value.includes(signature));
 }
 
 function extractedTextValues(page: PageExtract): string[] {

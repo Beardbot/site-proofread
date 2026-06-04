@@ -1,6 +1,6 @@
 import { access, cp, mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { findMojibakeSignatures, renderMojibakeWarning } from "./mojibake.js";
+import { findMojibakeSignatures, renderMojibakeWarning } from "../shared/mojibake.js";
 import type {
   PackData,
   PageOutput,

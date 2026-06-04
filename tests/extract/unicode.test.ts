@@ -10,7 +10,8 @@ import {
   renderManifestMarkdown,
   renderPageMarkdown
 } from "../../src/extract/markdown.js";
-import { containsMojibake, generatePageWarnings, MOJIBAKE_SIGNATURES } from "../../src/extract/warnings.js";
+import { generatePageWarnings } from "../../src/extract/warnings.js";
+import { containsMojibake, MOJIBAKE_SIGNATURES } from "../../src/shared/mojibake.js";
 import type { ManifestData } from "../../src/extract/types.js";
 
 const dirname = path.dirname(fileURLToPath(import.meta.url));
