@@ -7,8 +7,6 @@ Local TypeScript CLI for internal pre-launch website copy QA. It runs in two sta
 
 The tool is **model-agnostic**: it never calls an AI model, crawls arbitrary links, authenticates, submits forms, or edits website content. It produces deterministic artifacts; a human or an AI agent does the actual proofreading.
 
-> This repo is the consolidation of the former `site-copy-audit` (extraction) and `proofread-agent` (review prep) repos into one tool with a shared build, test, and CLI. See [Command mapping](#command-mapping) below.
-
 ## Getting started
 
 The quickest path from zero to a finished review. Run every command from the project folder (the one containing this README). If you're new to the command line, follow the steps in order — each one is safe to copy and paste.
@@ -61,15 +59,15 @@ Open your AI coding agent in this project and give it the printed kick-off promp
 
 That's the whole loop. The sections below cover each command in more detail and the files you get.
 
-## Command mapping
+## Commands
 
-| Unified command | Former command | Purpose |
-| --- | --- | --- |
-| `site-proofread init` | `site-copy-audit init` | Create a minimal extraction config |
-| `site-proofread extract` | `site-copy-audit run` | Extract a content pack from staging |
-| `site-proofread prepare-review` | `proofread-agent prepare` | Build a review workspace from a pack |
+| Command | What it does |
+| --- | --- |
+| `site-proofread init` | Create a minimal extraction config |
+| `site-proofread extract` | Extract a content pack from a staging site |
+| `site-proofread prepare-review` | Build a review workspace from a pack |
 
-Without `npm link`, use the npm scripts (`npm run init`, `npm run extract -- ...`, `npm run prepare-review -- ...`) or `node dist/cli.js <command>`.
+Without `npm link`, run these as `node dist/cli.js <command>`, or use the npm scripts (`npm run init`, `npm run extract -- ...`, `npm run prepare-review -- ...`).
 
 ## Workflow
 
@@ -155,9 +153,8 @@ npm test
 
 The test suite includes a Playwright-backed Unicode extraction regression; in restricted environments, browser launch may need elevated permission.
 
-## Status and follow-ups
+## Limitations
 
-This started as the **consolidation** commit: one repo, one CLI, one build/test, with each lane's behaviour preserved. Since then, the duplicated logic (mojibake detection, `slugify`, and the pack/manifest types) has been collapsed into a shared core under `src/shared/`. Still deferred to follow-up commits:
-
-- Renaming the generated review workspace's internal references from `proofread-agent prepare` to `site-proofread prepare-review`, and renaming the auto-discovered `proofread-agent.config.yml`.
-- Extraction-quality fixes (main-content scoping, staging auth, quieter warnings) and an optional model-backed `review` step.
+- The tool reads only sitemap-listed pages and never logs in, so staging sites behind a login or HTTP authentication can't be reached yet (see [Safety boundaries](#safety-boundaries)).
+- Extraction warnings (short pages, missing titles, possible encoding issues) are quality hints to help you spot gaps — they are not proofreading findings, and can be a little noisy.
+- A built-in, model-backed `review` step is planned; for now your own AI agent performs the review.
