@@ -42,7 +42,8 @@ node dist/cli.js prepare-review client
 
 ## Source Map
 
-- `src/cli.ts`: unified Commander CLI with `init`, `extract`, and `prepare-review` subcommands and the terminal progress UI.
+- `src/cli.ts`: unified Commander CLI with `init`, `extract`, `prepare-review`, and `run` subcommands and the terminal progress UI.
+- `src/pipeline/run.ts`: model-free full-pipeline orchestration for `run` (resolve extract config, reuse or create packs, then prepare the review workspace).
 - `src/extract/`: extraction lane (formerly `site-copy-audit/src`).
   - `config.ts`: config defaults, merge, validation, and `init` config generation.
   - `sitemap.ts`: sitemap fetch/parse and one-level index expansion.
