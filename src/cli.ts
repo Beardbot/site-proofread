@@ -19,7 +19,7 @@ import { slugify } from "./shared/slug.js";
 const program = new Command();
 
 program
-  .name("site-proofread")
+  .name("proofread")
   .description("Extract proofreadable website copy from staging sitemaps and prepare review workspaces.")
   .version("0.1.0");
 
@@ -59,7 +59,7 @@ program
   });
 
 program
-  .command("prepare-review")
+  .command("prepare")
   .argument("[client]", "client folder name under ./proofreading/extracts")
   .description("Create a self-contained proofreading review workspace from an extraction pack.")
   .option("--input <dir>", "explicit extraction output directory")
@@ -67,7 +67,7 @@ program
   .option("--out-root <dir>", "root directory for archived review workspaces", "./proofreading/reviews")
   .option("--run-id <id>", "run folder name under the client archive")
   .option("--out <dir>", "full output review workspace directory override")
-  .option("--config <file>", "proofreading config YAML (defaults to site-proofread.config.yml in the current directory)")
+  .option("--config <file>", "proofreading config YAML (defaults to proofread.config.yml in the current directory)")
   .option("--mode <mode>", "review depth: full or basic", parseReviewMode, "full")
   .option("--max-batch-chars <number>", "maximum estimated characters per batch", parsePositiveInteger)
   .action(async (client: string | undefined, options: {
@@ -91,7 +91,7 @@ program
 
 program
   .command("run")
-  .description("Run init, extract, and prepare-review in one model-free pipeline.")
+  .description("Run init, extract, and prepare in one model-free pipeline.")
   .option("-c, --config <path>", "Path to an existing extraction config file; skips init.")
   .option("-o, --out <path>", "Config file path to create when --config is absent. Defaults to ./proofreading/configs/<name>.yml.")
   .option("--site <url>", "Staging site base URL.")
@@ -103,7 +103,7 @@ program
   .option("--output-directory <path>", "Generated proofreading pack directory.")
   .option("--no-interactive", "Do not prompt for missing config values.")
   .option("--force", "Re-extract even when the configured output directory already has a manifest.json.")
-  .option("--review-config <file>", "Proofreading config YAML for the review stage; defaults to site-proofread.config.yml auto-discovery.")
+  .option("--review-config <file>", "Proofreading config YAML for the review stage; defaults to proofread.config.yml auto-discovery.")
   .option("--mode <mode>", "review depth: full or basic", parseReviewMode, "full")
   .option("--max-batch-chars <number>", "maximum estimated characters per batch", parsePositiveInteger)
   .action(async (options: CliPipelineOptions, command: Command) => {
@@ -244,7 +244,7 @@ async function promptInitialConfig(options: CliInitOptions) {
     const outputDirectory = await promptWithDefault(
       prompts,
       "Proofreading output directory",
-      options.outputDirectory ?? `./proofreading/extracts/${slugify(name, "site-proofread")}`
+      options.outputDirectory ?? `./proofreading/extracts/${slugify(name, "proofread")}`
     );
     const language = await promptWithDefault(
       prompts,

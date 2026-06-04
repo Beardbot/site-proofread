@@ -9,7 +9,7 @@ npm run extract -- --config ./proofreading/configs/client-name.yml
 or, after `npm link`:
 
 ```bash
-site-proofread extract --config ./proofreading/configs/client-name.yml
+proofread extract --config ./proofreading/configs/client-name.yml
 ```
 
 ## Creating Configs
@@ -23,13 +23,13 @@ npm run init -- --out ./proofreading/configs/client-name.yml
 or, after `npm link`:
 
 ```bash
-site-proofread init --out ./proofreading/configs/client-name.yml
+proofread init --out ./proofreading/configs/client-name.yml
 ```
 
 For non-interactive setup, provide the project values as flags:
 
 ```bash
-site-proofread init \
+proofread init \
   --out ./proofreading/configs/client-name.yml \
   --site https://staging.example.com \
   --sitemap https://staging.example.com/page-sitemap.xml \

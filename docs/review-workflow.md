@@ -1,10 +1,10 @@
 # Review Workflow
 
-`site-proofread prepare-review` prepares a Codex-ready review workspace from a `site-proofread extract` output pack. It does not call an AI model, crawl websites, open a browser, or edit website content.
+`proofread prepare` prepares a Codex-ready review workspace from a `proofread extract` output pack. It does not call an AI model, crawl websites, open a browser, or edit website content.
 
 ## Normal Client Workflow
 
-1. Run `site-proofread extract` for the client.
+1. Run `proofread extract` for the client.
 2. Confirm the extracted pack exists at:
 
    ```text
@@ -14,16 +14,16 @@
 3. From this repo, prepare the review workspace:
 
    ```bash
-   npm run prepare-review -- <client-name>
+   npm run prepare:review -- <client-name>
    ```
 
    If the CLI has been linked with `npm link`, you can use:
 
    ```bash
-   site-proofread prepare-review <client-name>
+   proofread prepare <client-name>
    ```
 
-4. Open the `site-proofread` project root as the Codex workspace. The generated review workspace path is:
+4. Open the `proofread` project root as the Codex workspace. The generated review workspace path is:
 
    ```text
    ./proofreading/reviews/<client-slug>/<run-id>
@@ -60,13 +60,13 @@
 The default mode is a full proofreading review:
 
 ```bash
-site-proofread prepare-review <client-name> --mode full
+proofread prepare <client-name> --mode full
 ```
 
 For a short pre-launch check, use basic mode:
 
 ```bash
-site-proofread prepare-review <client-name> --mode basic
+proofread prepare <client-name> --mode basic
 ```
 
 Basic mode is designed for quick launch QA. It asks Codex to flag glaring spelling mistakes, basic grammar errors, obvious punctuation errors, broken or truncated visible sentences, placeholder text, staging/test copy, and other issues that would look clearly wrong immediately before launch. It avoids deeper style, tone, minor phrasing, broad consistency, SEO metadata, and image alt text unless the issue is obvious and launch-critical.
@@ -76,14 +76,14 @@ Basic mode is designed for quick launch QA. It asks Codex to flag glaring spelli
 Templated boilerplate that is identical across client sites — privacy policy, terms and conditions, and similar — usually does not need proofreading on every run. Add an `excluded_pages` list to your config file to skip it:
 
 ```yaml
-# site-proofread.config.yml (in the directory you run prepare-review from)
+# proofread.config.yml (in the directory you run prepare from)
 excluded_pages:
   - privacy-policy        # substring match against URL/file/slug
   - /terms-conditions/    # exact path
   - "*/legal/*"           # glob
 ```
 
-The tool reads `site-proofread.config.yml` (or `.yaml`) from the current directory by default, so one shared file covers every client; pass `--config <file>` to use a different one, or set `excluded_pages` in the `manifest.json` `config.proofreading` block. Values from the manifest and the config file are merged.
+The tool reads `proofread.config.yml` (or `.yaml`) from the current directory by default, so one shared file covers every client; pass `--config <file>` to use a different one, or set `excluded_pages` in the `manifest.json` `config.proofreading` block. Values from the manifest and the config file are merged.
 
 Excluded pages are still copied into `site-pack/` for reference, but get no batch prompt and no page report. They are listed under `Excluded From Review` in `manual-review-notes.md` and an `Excluded from review` section in the final report, so an exclusion is always visible rather than silent.
 
@@ -91,7 +91,7 @@ Because `site-pack/pages/` can therefore include pages that are out of scope, th
 
 ## Encoding Safeguards
 
-`prepare-review` reads text pack files as UTF-8 and preserves valid smart punctuation, curly quotes, and en dashes through the copied `site-pack/` files and generated prompts.
+`prepare` reads text pack files as UTF-8 and preserves valid smart punctuation, curly quotes, and en dashes through the copied `site-pack/` files and generated prompts.
 
 Some terminals may display valid UTF-8 smart punctuation as mojibake. The generated review instructions tell Codex to verify actual UTF-8 file contents before reporting any mojibake as a proofreading issue.
 
@@ -123,32 +123,32 @@ The output archive path is inferred as:
 
 `<run-id>` is inferred from `manifest.json.extractionDate`, then falls back to today's date.
 
-Running `prepare-review` overwrites the selected output workspace so stale prompts and reports do not linger between runs.
+Running `prepare` overwrites the selected output workspace so stale prompts and reports do not linger between runs.
 
 ## Custom Paths
 
 Use `--input` when the pack is not under the normal `./proofreading/extracts` folder:
 
 ```bash
-npm run prepare-review -- --input D:/path/to/custom-pack
+npm run prepare:review -- --input D:/path/to/custom-pack
 ```
 
 Change the normal input/output roots:
 
 ```bash
-site-proofread prepare-review client-name --input-root path/to/extracts --out-root path/to/reviews
+proofread prepare client-name --input-root path/to/extracts --out-root path/to/reviews
 ```
 
 Set a custom run folder:
 
 ```bash
-site-proofread prepare-review client-name --run-id 2026-06-03-round-2
+proofread prepare client-name --run-id 2026-06-03-round-2
 ```
 
 Override the final workspace path completely:
 
 ```bash
-site-proofread prepare-review --input ./pack --out ./review-workspace
+proofread prepare --input ./pack --out ./review-workspace
 ```
 
 Use either a client name or `--input`, not both.
@@ -160,7 +160,7 @@ Inside this repo, after dependencies are installed and the project is built, no 
 ```bash
 npm install
 npm run build
-npm run prepare-review -- client-name
+npm run prepare:review -- client-name
 ```
 
 You only need `npm install` again after a fresh clone, missing `node_modules/`, or dependency changes.
@@ -171,7 +171,7 @@ Use `npm link` only if you want the bare command available from other terminal l
 
 ```bash
 npm link
-site-proofread prepare-review client-name
+proofread prepare client-name
 ```
 
 ## Generated Workspace

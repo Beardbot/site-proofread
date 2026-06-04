@@ -3,7 +3,7 @@
 Local TypeScript CLI for internal pre-launch website copy QA. It runs in two stages from one tool:
 
 1. **`extract`** — render sitemap-listed staging pages with Playwright and write a structured Markdown content pack (copy, headings, buttons, links, forms, image alt text, accordion/tab content) plus full-page screenshots.
-2. **`prepare-review`** — turn that pack into a self-contained, deterministic proofreading review workspace (batch prompts, per-page report placeholders, severity-first templates) that you drive with your own AI agent (Claude Code, Codex, etc.).
+2. **`prepare`** — turn that pack into a self-contained, deterministic proofreading review workspace (batch prompts, per-page report placeholders, severity-first templates) that you drive with your own AI agent (Claude Code, Codex, etc.).
 
 The tool is **model-agnostic**: it never calls an AI model, crawls arbitrary links, authenticates, submits forms, or edits website content. It produces deterministic artifacts; a human or an AI agent does the actual proofreading.
 
@@ -26,16 +26,16 @@ npm link
 npx playwright install chromium
 ```
 
-`npm install` downloads dependencies, `npm run build` compiles the tool, `npm link` makes the `site-proofread` command available in your terminal, and the last line installs the headless browser used to read pages.
+`npm install` downloads dependencies, `npm run build` compiles the tool, `npm link` makes the `proofread` command available in your terminal, and the last line installs the headless browser used to read pages.
 
-> If `npm link` reports a permissions error, or `site-proofread` isn't found afterwards, you can run any command below as `node dist/cli.js <command>` instead (for example `node dist/cli.js init`), or use the npm scripts (`npm run init`, `npm run extract -- ...`).
+> If `npm link` reports a permissions error, or `proofread` isn't found afterwards, you can run any command below as `node dist/cli.js <command>` instead (for example `node dist/cli.js init`), or use the npm scripts (`npm run init`, `npm run extract -- ...`).
 
-**Quick path:** after installing, `site-proofread run` walks through config creation, extraction, and review workspace preparation in one command.
+**Quick path:** after installing, `proofread run` walks through config creation, extraction, and review workspace preparation in one command.
 
 **2. Create a config — `init`**
 
 ```bash
-site-proofread init
+proofread init
 ```
 
 Answer the prompts (staging site URL, site name, sitemap URL(s), and so on). It saves a config under `./proofreading/configs/` and prints the exact path. A sitemap URL usually ends in `sitemap.xml` — for example `https://staging.example.com/page-sitemap.xml`. Ask the site's developer if you're not sure where it is.
@@ -43,15 +43,15 @@ Answer the prompts (staging site URL, site name, sitemap URL(s), and so on). It 
 **3. Extract the content pack — `extract`** (use the config path that `init` printed)
 
 ```bash
-site-proofread extract --config ./proofreading/configs/your-site.yml
+proofread extract --config ./proofreading/configs/your-site.yml
 ```
 
 A headless browser visits each page listed in the sitemap and writes its copy — plus full-page screenshots — to `./proofreading/extracts/your-site/`.
 
-**4. Build the review workspace — `prepare-review`** (use the folder name `extract` created under `./proofreading/extracts/`)
+**4. Build the review workspace — `prepare`** (use the folder name `extract` created under `./proofreading/extracts/`)
 
 ```bash
-site-proofread prepare-review your-site
+proofread prepare your-site
 ```
 
 This creates a self-contained workspace under `./proofreading/reviews/your-site/<date>/` and prints a kick-off prompt (also saved there as `codex-kickoff-prompt.md`). Add `--mode basic` for a fast pre-launch sanity check instead of a full review.
@@ -66,12 +66,12 @@ That's the whole loop. The sections below cover each command in more detail and 
 
 | Command | What it does |
 | --- | --- |
-| `site-proofread run` | Run config creation, extraction, and review workspace preparation in one invocation |
-| `site-proofread init` | Create a minimal extraction config |
-| `site-proofread extract` | Extract a content pack from a staging site |
-| `site-proofread prepare-review` | Build a review workspace from a pack |
+| `proofread run` | Run config creation, extraction, and review workspace preparation in one invocation |
+| `proofread init` | Create a minimal extraction config |
+| `proofread extract` | Extract a content pack from a staging site |
+| `proofread prepare` | Build a review workspace from a pack |
 
-Without `npm link`, run these as `node dist/cli.js <command>`, or use the npm scripts (`npm run init`, `npm run extract -- ...`, `npm run prepare-review -- ...`).
+Without `npm link`, run these as `node dist/cli.js <command>`, or use the npm scripts (`npm run init`, `npm run extract -- ...`, `npm run prepare:review -- ...`).
 
 ## Workflow
 
@@ -82,23 +82,23 @@ run  ->  drive your own agent over the workspace
 Or use the primitive commands separately:
 
 ```text
-init  ->  extract  ->  prepare-review  ->  drive your own agent over the workspace
+init  ->  extract  ->  prepare  ->  drive your own agent over the workspace
 ```
 
 **One-command pipeline:**
 
 ```bash
-site-proofread run
+proofread run
 ```
 
 `run` prompts for the same extraction config values as `init`, extracts the pack, then prepares the review workspace. Pass `--config ./proofreading/configs/client-name.yml` to reuse an existing extraction config and skip config creation. If the configured output directory already contains `manifest.json`, `run` reuses that pack; pass `--force` to re-extract before preparing the review.
 
-The pipeline keeps the two config files distinct: `--config` is the per-client extraction config, while `--review-config` is the proofreading dictionary/config used by `prepare-review`. If `--review-config` is omitted, the review stage still auto-discovers `site-proofread.config.yml` in the project root and merges it with the pack manifest's proofreading block.
+The pipeline keeps the two config files distinct: `--config` is the per-client extraction config, while `--review-config` is the proofreading dictionary/config used by `prepare`. If `--review-config` is omitted, the review stage still auto-discovers `proofread.config.yml` in the project root and merges it with the pack manifest's proofreading block.
 
 1. **Create a config.** Interactive prompts, or pass flags:
 
    ```bash
-   site-proofread init --out ./proofreading/configs/client-name.yml \
+   proofread init --out ./proofreading/configs/client-name.yml \
      --site https://staging.example.com \
      --sitemap https://staging.example.com/page-sitemap.xml
    ```
@@ -108,13 +108,13 @@ The pipeline keeps the two config files distinct: `--config` is the per-client e
 2. **Extract the content pack:**
 
    ```bash
-   site-proofread extract --config ./proofreading/configs/client-name.yml
+   proofread extract --config ./proofreading/configs/client-name.yml
    ```
 
    Or with direct arguments:
 
    ```bash
-   site-proofread extract \
+   proofread extract \
      --site https://staging.example.com \
      --sitemap https://staging.example.com/page-sitemap.xml \
      --out ./proofreading/extracts/client-name
@@ -125,14 +125,14 @@ The pipeline keeps the two config files distinct: `--config` is the per-client e
 3. **Prepare a review workspace** from the pack (resolved under `./proofreading/extracts/<client>` by default):
 
    ```bash
-   site-proofread prepare-review client-name
+   proofread prepare client-name
    ```
 
    Flags go after the client name. Use `--mode basic` for a quick launch sanity check (the default is `full`), or `--input <dir>` for a pack outside the default location:
 
    ```bash
-   site-proofread prepare-review client-name --mode basic
-   site-proofread prepare-review --input ./proofreading/extracts/client-name --mode basic
+   proofread prepare client-name --mode basic
+   proofread prepare --input ./proofreading/extracts/client-name --mode basic
    ```
 
    Pass either a client name or `--input`, not both.
@@ -149,7 +149,7 @@ The pipeline keeps the two config files distinct: `--config` is the per-client e
 - `screenshots/NNN-slug.png` — full-page screenshots when enabled.
 - `README.md` / `agent-proofreading-prompt.md` — pack notes and a standalone proofreading prompt.
 
-`prepare-review` writes a workspace under `./proofreading/reviews/<client>/<run-id>/` containing `site-pack/` (a copy of the pack), `batches/` (review prompts), `reports/pages/` (per-page placeholders), severity-first templates, and a `merge-prompt.md`. See [docs/review-workflow.md](docs/review-workflow.md).
+`prepare` writes a workspace under `./proofreading/reviews/<client>/<run-id>/` containing `site-pack/` (a copy of the pack), `batches/` (review prompts), `reports/pages/` (per-page placeholders), severity-first templates, and a `merge-prompt.md`. See [docs/review-workflow.md](docs/review-workflow.md).
 
 ## Screenshots and sticky elements
 
@@ -184,7 +184,7 @@ npm run build
 npm test
 ```
 
-`site-proofread` (whether linked via `npm link` or run as `node dist/cli.js`) executes the compiled output in `dist/`, which is gitignored. After pulling changes that touch `src/`, run `npm run build` so the command reflects the latest source — otherwise it keeps running stale code (for example, prompting with an old default path). To skip the rebuild during development, run against the TypeScript source directly with `npm run dev -- <command>` (for example `npm run dev -- init`).
+`proofread` (whether linked via `npm link` or run as `node dist/cli.js`) executes the compiled output in `dist/`, which is gitignored. After pulling changes that touch `src/`, run `npm run build` so the command reflects the latest source — otherwise it keeps running stale code (for example, prompting with an old default path). To skip the rebuild during development, run against the TypeScript source directly with `npm run dev -- <command>` (for example `npm run dev -- init`).
 
 The test suite includes a Playwright-backed Unicode extraction regression; in restricted environments, browser launch may need elevated permission.
 
