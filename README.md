@@ -7,6 +7,8 @@ Local TypeScript CLI for internal pre-launch website copy QA. It runs in two sta
 
 The tool is **model-agnostic**: it never calls an AI model, crawls arbitrary links, authenticates, submits forms, or edits website content. It produces deterministic artifacts; a human or an AI agent does the actual proofreading.
 
+**New here?** After a one-time setup, a single command — `proofread run` — takes you from a staging URL to a review-ready workspace. See [Getting started](#getting-started).
+
 ## Getting started
 
 The quickest path from zero to a finished review. Run every command from the project folder (the one containing this README). If you're new to the command line, follow the steps in order — each one is safe to copy and paste.
@@ -28,35 +30,29 @@ npx playwright install chromium
 
 `npm install` downloads dependencies, `npm run build` compiles the tool, `npm link` makes the `proofread` command available in your terminal, and the last line installs the headless browser used to read pages.
 
-> If `npm link` reports a permissions error, or `proofread` isn't found afterwards, you can run any command below as `node dist/cli.js <command>` instead (for example `node dist/cli.js init`), or use the npm scripts (`npm run init`, `npm run extract -- ...`).
+> If `npm link` reports a permissions error, or `proofread` isn't found afterwards, you can run any command below as `node dist/cli.js <command>` instead (for example `node dist/cli.js run`), or use the npm scripts (`npm run init`, `npm run extract -- ...`).
 
-**Quick path:** after installing, `proofread run` walks through config creation, extraction, and review workspace preparation in one command.
-
-**2. Create a config — `init`**
+**2. Run the whole pipeline — `run`**
 
 ```bash
-proofread init
+proofread run
 ```
 
-Answer the prompts (staging site URL, site name, sitemap URL(s), and so on). It saves a config under `./proofreading/configs/` and prints the exact path. A sitemap URL usually ends in `sitemap.xml` — for example `https://staging.example.com/page-sitemap.xml`. Ask the site's developer if you're not sure where it is.
+This is the only command most people need — it takes you all the way from a staging URL to a review-ready workspace:
 
-**3. Extract the content pack — `extract`** (use the config path that `init` printed)
+1. **It asks a few questions** — mainly the staging site URL, a site/client name, and the sitemap URL(s). A sitemap URL usually ends in `sitemap.xml` (for example `https://staging.example.com/page-sitemap.xml`); ask the site's developer if you're not sure where it is. It also asks about the output location, language, and allowed terms — press Enter to accept the suggested default shown in brackets for anything you're unsure about.
+2. **It reads the site** — a headless browser opens each page in the sitemap and saves its copy plus full-page screenshots to `./proofreading/extracts/<name>/`. This is the slow part; a large site can take a few minutes.
+3. **It builds the review workspace** — under `./proofreading/reviews/<name>/<date>/`, and prints a kick-off prompt for your AI agent (also saved there as `codex-kickoff-prompt.md`).
+
+For a fast pre-launch sanity check instead of a full review, add `--mode basic`:
 
 ```bash
-proofread extract --config ./proofreading/configs/your-site.yml
+proofread run --mode basic
 ```
 
-A headless browser visits each page listed in the sitemap and writes its copy — plus full-page screenshots — to `./proofreading/extracts/your-site/`.
+> Running `proofread run` again reuses the pages it already read instead of re-visiting the site; add `--force` when the staging site has changed and you want a fresh read. Prefer to run the stages one at a time? See [Workflow](#workflow) for the `init` → `extract` → `prepare` breakdown.
 
-**4. Build the review workspace — `prepare`** (use the folder name `extract` created under `./proofreading/extracts/`)
-
-```bash
-proofread prepare your-site
-```
-
-This creates a self-contained workspace under `./proofreading/reviews/your-site/<date>/` and prints a kick-off prompt (also saved there as `codex-kickoff-prompt.md`). Add `--mode basic` for a fast pre-launch sanity check instead of a full review.
-
-**5. Run the review with your agent**
+**3. Run the review with your agent**
 
 Open your AI coding agent in this project and give it the printed kick-off prompt (or paste the contents of `codex-kickoff-prompt.md`). The agent reads the workspace's `AGENTS.md`, completes each page report, and writes the merged report at `reports/final-report.md`. Open that file to read the findings — highest severity first.
 
