@@ -47,7 +47,7 @@ describe("prepareReviewWorkspace", () => {
     await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "Do not treat URL slugs as proofreading content.");
     await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "reports/pages/001-home-report.md");
     await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "Order findings by severity: High first, then Medium, then Low.");
-    await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "a `diff` block of the change plus a copyable `text` block of the suggested correction");
+    await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "an inline word-level diff (removed words `~~struck~~`, added words `**bold**`)");
     await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "Do not use a shell or terminal workflow that replaces non-ASCII punctuation");
     await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "temporary Node.js `.mjs` script");
     await expectFile(result.workspaceDir, "batches/batch-001-prompt.md", "display as boxes or mojibake");
@@ -55,7 +55,7 @@ describe("prepareReviewWorkspace", () => {
     await expectFile(result.workspaceDir, "page-report-template.md", "## 🔴 Immediate attention");
     await expectFile(result.workspaceDir, "page-report-template.md", "### 🔴 High severity");
     await expectFile(result.workspaceDir, "page-report-template.md", "### 🟠 Medium severity");
-    await expectFile(result.workspaceDir, "page-report-template.md", "```diff");
+    await expectFile(result.workspaceDir, "page-report-template.md", "deletions marked ~~like this~~");
     await expectFile(result.workspaceDir, "page-report-template.md", "**Suggested (copy):**");
     await expectFile(result.workspaceDir, "page-report-template.md", "| Metric | Count |");
     await expectFile(result.workspaceDir, "page-report-template.md", "## Output encoding check");
