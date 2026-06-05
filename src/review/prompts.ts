@@ -71,10 +71,10 @@ The \`reports/pages/*.md\` files and \`reports/final-report.md\` already exist a
 - Use exact page URLs and page file paths from the prepared package.
 - Include the page URL as a Markdown link so the developer or copywriter can open the page.
 - Give each finding a heading with a severity badge and short title: 🔴 for High, 🟠 for Medium, 🟡 for Low (for example, \`#### 🔴 H1 · Truncated news excerpt\`).
-- Put the current text and the suggested correction in separate Markdown blockquotes, each led by a bold \`Current:\` / \`Suggested:\` label, then write the reason as one italic line.
+- Show the change as a fenced \`diff\` block with the current text on \`-\` lines and the suggested correction on \`+\` lines, then repeat the suggested correction by itself in a plain fenced \`text\` block under a bold \`Suggested (copy):\` label so it can be copied cleanly, then write the reason as one italic line.
 - Separate every finding, page block, and top-level section with a \`---\` divider, and present the summary as a Markdown table.
 - Order findings by severity: High first, then Medium, then Low.
-- Quote \`Current:\` excerpts exactly from the source copy; do not use ellipses or shorten the excerpt.
+- Quote the current text exactly on the \`diff\` block's \`-\` lines; do not use ellipses or shorten the excerpt.
 - Avoid speculative or subjective recommendations.
 - Before finishing, verify the page reports and final report do not contain question marks that replaced source smart punctuation, quotes, apostrophes, or dashes.
 
@@ -85,7 +85,7 @@ Run this checklist before reporting completion:
 - Replace every \`_Pending._\` placeholder: no file in \`reports/pages/\` and not \`reports/final-report.md\` still contains \`_Pending._\`.
 - Remove all template tokens, such as \`[short finding title]\`, \`[exact current text]\`, and \`[suggested correction]\`.
 - Confirm only pages listed in the batch prompts have reports; do not add reports for pages excluded from review.
-- Keep \`Current:\` excerpts exact, with no ellipses or shortened quotes.
+- Keep the current text on the \`diff\` block's \`-\` lines exact, with no ellipses or shortened quotes.
 - Confirm no \`?\` characters replaced smart punctuation and the 🔴 🟠 🟡 severity badges are intact.
 `;
 }
@@ -188,7 +188,7 @@ ${renderBatchList(batches)}
 
 Complete each page report listed in the batch prompts, then use \`merge-prompt.md\` to create \`reports/final-report.md\`.
 
-Report findings in severity order: High, Medium, then Low. Follow the generated templates: a summary table, severity-badged finding headings (🔴 High, 🟠 Medium, 🟡 Low), blockquoted Current and Suggested text, an italic reason line, and \`---\` dividers between findings so urgent issues are easy to scan.
+Report findings in severity order: High, Medium, then Low. Follow the generated templates: a summary table, severity-badged finding headings (🔴 High, 🟠 Medium, 🟡 Low), a \`diff\` block of the change plus a copyable \`text\` block of the suggested correction, an italic reason line, and \`---\` dividers between findings so urgent issues are easy to scan.
 `;
 }
 
@@ -230,13 +230,16 @@ Listed High → Medium → Low. Within the same severity, keep findings in page 
 
 #### 🔴 H1 · [short finding title]
 
-> **Current:**
->
-> [exact current text]
+\`\`\`diff
+- [exact current text]
++ [suggested correction]
+\`\`\`
 
-> **Suggested:**
->
-> [suggested correction]
+**Suggested (copy):**
+
+\`\`\`text
+[suggested correction]
+\`\`\`
 
 *Reason: [why this matters at launch]*
 
@@ -246,13 +249,16 @@ Listed High → Medium → Low. Within the same severity, keep findings in page 
 
 #### 🟠 M1 · [short finding title]
 
-> **Current:**
->
-> [exact current text]
+\`\`\`diff
+- [exact current text]
++ [suggested correction]
+\`\`\`
 
-> **Suggested:**
->
-> [suggested correction]
+**Suggested (copy):**
+
+\`\`\`text
+[suggested correction]
+\`\`\`
 
 *Reason: [why this matters at launch]*
 
@@ -262,13 +268,16 @@ Listed High → Medium → Low. Within the same severity, keep findings in page 
 
 #### 🟡 L1 · [short finding title]
 
-> **Current:**
->
-> [exact current text]
+\`\`\`diff
+- [exact current text]
++ [suggested correction]
+\`\`\`
 
-> **Suggested:**
->
-> [suggested correction]
+**Suggested (copy):**
+
+\`\`\`text
+[suggested correction]
+\`\`\`
 
 *Reason: [why this matters at launch]*
 
@@ -328,13 +337,16 @@ Grouped High → Medium → Low; within each severity, keep findings in page ord
 
 **Page:** [Page title](url) · \`file\`
 
-> **Current:**
->
-> [exact current text]
+\`\`\`diff
+- [exact current text]
++ [suggested correction]
+\`\`\`
 
-> **Suggested:**
->
-> [suggested correction]
+**Suggested (copy):**
+
+\`\`\`text
+[suggested correction]
+\`\`\`
 
 *Reason: [why this matters at launch]*
 
@@ -346,13 +358,16 @@ Grouped High → Medium → Low; within each severity, keep findings in page ord
 
 **Page:** [Page title](url) · \`file\`
 
-> **Current:**
->
-> [exact current text]
+\`\`\`diff
+- [exact current text]
++ [suggested correction]
+\`\`\`
 
-> **Suggested:**
->
-> [suggested correction]
+**Suggested (copy):**
+
+\`\`\`text
+[suggested correction]
+\`\`\`
 
 *Reason: [why this matters at launch]*
 
@@ -364,13 +379,16 @@ Grouped High → Medium → Low; within each severity, keep findings in page ord
 
 **Page:** [Page title](url) · \`file\`
 
-> **Current:**
->
-> [exact current text]
+\`\`\`diff
+- [exact current text]
++ [suggested correction]
+\`\`\`
 
-> **Suggested:**
->
-> [suggested correction]
+**Suggested (copy):**
+
+\`\`\`text
+[suggested correction]
+\`\`\`
 
 *Reason: [why this matters at launch]*
 
@@ -478,7 +496,7 @@ ${renderStringList(batch.pages.map((page) => page.reportFile))}
 - Include each page URL as a Markdown link in its page report.
 - Order findings by severity: High first, then Medium, then Low.
 - Put High severity findings in the \`Immediate attention\` section.
-- Format each finding to match \`page-report-template.md\`: a severity-badged heading (🔴 High, 🟠 Medium, 🟡 Low) with a short title, blockquoted Current and Suggested text, an italic reason line, and \`---\` dividers between findings.
+- Format each finding to match \`page-report-template.md\`: a severity-badged heading (🔴 High, 🟠 Medium, 🟡 Low) with a short title, a \`diff\` block of the change plus a copyable \`text\` block of the suggested correction, an italic reason line, and \`---\` dividers between findings.
 
 ## Review Goal
 
@@ -530,12 +548,12 @@ Use \`report-template.md\` as the final report structure.
 ## Merge Rules
 
 - Consolidate duplicate findings.
-- When consolidating, keep one finding per distinct source excerpt; never merge in a way that forces paraphrasing or truncating an exact Current excerpt.
+- When consolidating, keep one finding per distinct source excerpt; never merge in a way that forces paraphrasing or truncating an exact current excerpt.
 - Preserve exact page URLs and page file paths.
 - Keep proofreading findings separate from extraction and manual-review issues.
 - Order findings by severity: High first, then Medium, then Low.
 - Put every High severity finding in the \`Immediate attention\` section so urgent launch fixes are visible without reading the whole report.
-- Format each finding to match \`report-template.md\`: a severity-badged heading (🔴 High, 🟠 Medium, 🟡 Low) with a short title, a bold \`Page:\` link line, blockquoted Current and Suggested text, and an italic reason line.
+- Format each finding to match \`report-template.md\`: a severity-badged heading (🔴 High, 🟠 Medium, 🟡 Low) with a short title, a bold \`Page:\` link line, a \`diff\` block of the change plus a copyable \`text\` block of the suggested correction, and an italic reason line.
 - Present the summary as a Markdown table and separate every finding and top-level section with a \`---\` divider.
 - Consolidate global consistency issues across all page reports.
 - Include skipped pages, failed pages, sitemap warnings, and extraction warnings only in manual-review sections unless a page report identifies a genuine proofreading issue.
