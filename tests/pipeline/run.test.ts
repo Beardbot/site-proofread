@@ -58,7 +58,7 @@ describe("runPipeline", () => {
 
     await runPipeline({
       configPath,
-      reviewConfigPath: "./site-proofread.config.yml",
+      reviewConfigPath: "./proofread.config.yml",
       mode: "basic",
       maxBatchChars: 5000,
       onProgress
@@ -70,7 +70,7 @@ describe("runPipeline", () => {
     );
     expect(prepareReviewWorkspaceMock).toHaveBeenCalledWith({
       input: outputDir,
-      config: "./site-proofread.config.yml",
+      config: "./proofread.config.yml",
       mode: "basic",
       maxBatchChars: 5000
     });
@@ -122,7 +122,7 @@ async function createConfig(): Promise<{ configPath: string; outputDir: string }
 }
 
 async function makeTempDir(): Promise<string> {
-  const dir = path.join(os.tmpdir(), `site-proofread-pipeline-${Date.now()}-${Math.random()}`);
+  const dir = path.join(os.tmpdir(), `proofread-pipeline-${Date.now()}-${Math.random()}`);
   await mkdir(dir, { recursive: true });
   return dir;
 }

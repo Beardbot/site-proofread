@@ -14,9 +14,9 @@ describe("shared slugify", () => {
   });
 
   it("returns the caller-provided fallback for empty or non-sluggable input", () => {
-    expect(slugify("", "site-proofread")).toBe("site-proofread");
-    expect(slugify(undefined, "site-proofread")).toBe("site-proofread");
-    expect(slugify("!!!", "site-proofread")).toBe("site-proofread");
+    expect(slugify("", "proofread")).toBe("proofread");
+    expect(slugify(undefined, "proofread")).toBe("proofread");
+    expect(slugify("!!!", "proofread")).toBe("proofread");
   });
 
   it("defaults to an empty fallback when none is provided", () => {

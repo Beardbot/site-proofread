@@ -1,6 +1,6 @@
 # Agent Guide
 
-This repo is a local Node.js + TypeScript CLI for internal pre-launch website copy QA. It has two stages in one tool: **extract** (Playwright extraction into a Markdown content pack) and **prepare-review** (deterministic proofreading review workspace generation).
+This repo is a local Node.js + TypeScript CLI for internal pre-launch website copy QA. It has two stages in one tool: **extract** (Playwright extraction into a Markdown content pack) and **prepare** (deterministic proofreading review workspace generation).
 
 It is the consolidation of the former `site-copy-audit` and `proofread-agent` repos. Both lanes were merged behaviour-preserving; see "Deferred follow-ups" below for what was intentionally left for later commits.
 
@@ -37,12 +37,12 @@ npm test
 ```bash
 node dist/cli.js init
 node dist/cli.js extract --config ./proofreading/configs/client.yml
-node dist/cli.js prepare-review client
+node dist/cli.js prepare client
 ```
 
 ## Source Map
 
-- `src/cli.ts`: unified Commander CLI with `init`, `extract`, `prepare-review`, and `run` subcommands and the terminal progress UI.
+- `src/cli.ts`: unified Commander CLI with `init`, `extract`, `prepare`, and `run` subcommands and the terminal progress UI.
 - `src/pipeline/run.ts`: model-free full-pipeline orchestration for `run` (resolve extract config, reuse or create packs, then prepare the review workspace).
 - `src/extract/`: extraction lane (formerly `site-copy-audit/src`).
   - `config.ts`: config defaults, merge, validation, and `init` config generation.
@@ -90,4 +90,4 @@ These were intentionally left for later, behaviour-affecting commits so the merg
 Done in later commits (no longer deferred):
 
 - The duplicated mojibake detection, `slugify`, and pack/manifest types were collapsed into `src/shared/` (`mojibake.ts`, `slug.ts`, `pack.ts`).
-- Generated review references were renamed off the pre-merge tool names: `review/prompts.ts` now emits `site-proofread prepare-review` and `review/config.ts` auto-discovers `site-proofread.config.yml` (the repo config file and the default fallback slug were updated to match, and the `docs/` command examples now use the unified `site-proofread extract` / `site-proofread prepare-review` names).
+- Generated review references were renamed off the pre-merge tool names: `review/prompts.ts` now emits `proofread prepare` and `review/config.ts` auto-discovers `proofread.config.yml` (the repo config file and the default fallback slug were updated to match, and the `docs/` command examples now use the unified `proofread extract` / `proofread prepare` names).

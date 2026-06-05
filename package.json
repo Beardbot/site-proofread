@@ -1,10 +1,10 @@
 {
-  "name": "site-proofread",
+  "name": "proofread",
   "version": "0.1.0",
   "description": "Local CLI to extract proofreadable website copy from staging sitemaps and prepare review workspaces.",
   "type": "module",
   "bin": {
-    "site-proofread": "./dist/cli.js"
+    "proofread": "./dist/cli.js"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -12,7 +12,7 @@
     "cli": "node dist/cli.js",
     "init": "node dist/cli.js init",
     "extract": "node dist/cli.js extract",
-    "prepare-review": "node dist/cli.js prepare-review",
+    "prepare:review": "node dist/cli.js prepare",
     "dev": "tsx src/cli.ts"
   },
   "dependencies": {

@@ -14,8 +14,8 @@ import type {
  * `excluded_pages`) apply to every client without repeating the flag.
  */
 export const DEFAULT_CONFIG_FILENAMES = [
-  "site-proofread.config.yml",
-  "site-proofread.config.yaml"
+  "proofread.config.yml",
+  "proofread.config.yaml"
 ];
 
 const EMPTY_GROUPS: Required<DictionaryTermGroups> = {
