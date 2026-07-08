@@ -50,6 +50,14 @@ For a fast pre-launch sanity check instead of a full review, add `--mode basic`:
 proofread run --mode basic
 ```
 
+For a narrow, one-off change — swap a word, fix a brand name — use `--mode targeted`; the review then does only that change and reports nothing else. The simplest way is to describe the change in plain language and let the review agent compile it into an exact, corpus-grounded scope (which it shows you to confirm before reviewing):
+
+```bash
+proofread run --mode targeted --goal "Change 'expert' to 'experienced' only when it qualifies 'lawyer' or 'advice'."
+```
+
+Prefer to spell out the rule yourself? Pass `--replace "find=>replace::condition"` instead, or a `replacements` block in the config file. See [Directed replacements](docs/review-workflow.md#directed-replacements) for all three forms.
+
 > Running `proofread run` again reuses the pages it already read instead of re-visiting the site; add `--force` when the staging site has changed and you want a fresh read. Prefer to run the stages one at a time? See [Workflow](#workflow) for the `init` → `extract` → `prepare` breakdown.
 
 **3. Run the review with your agent**
@@ -124,7 +132,7 @@ The pipeline keeps the two config files distinct: `--config` is the per-client e
    proofread prepare client-name
    ```
 
-   Flags go after the client name. Use `--mode basic` for a quick launch sanity check (the default is `full`), or `--input <dir>` for a pack outside the default location:
+   Flags go after the client name. Use `--mode basic` for a quick launch sanity check, `--mode targeted` for a directed find-and-replace pass (see [Directed replacements](docs/review-workflow.md#directed-replacements)), or `--input <dir>` for a pack outside the default location (the default mode is `full`):
 
    ```bash
    proofread prepare client-name --mode basic

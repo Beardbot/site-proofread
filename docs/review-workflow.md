@@ -71,6 +71,68 @@ proofread prepare <client-name> --mode basic
 
 Basic mode is designed for quick launch QA. It asks Codex to flag glaring spelling mistakes, basic grammar errors, obvious punctuation errors, broken or truncated visible sentences, placeholder text, staging/test copy, and other issues that would look clearly wrong immediately before launch. It avoids deeper style, tone, minor phrasing, broad consistency, SEO metadata, and image alt text unless the issue is obvious and launch-critical.
 
+For a narrow, one-off change — swap a word, fix a brand name, correct a recurring adjective — use targeted mode:
+
+```bash
+proofread prepare <client-name> --mode targeted --config ./proofread.config.yml
+```
+
+Targeted mode does **only** the directed replacements you configure and reports nothing else — no broad spelling, grammar, style, or consistency pass. This keeps a scoped job scoped: the agent isn't spending effort (or your budget) on findings you didn't ask for, and the change you care about isn't buried in an unrelated report.
+
+## Directed Replacements
+
+Directed replacements are explicit find-and-replace rules for copy. They are broad enough for any narrow change — branding, adjectives, names, terminology — and each rule can be gated by a plain-language condition the agent applies with judgement. Add a `replacements` list to your review config:
+
+```yaml
+# proofread.config.yml (in the directory you run prepare from), or any --config file
+replacements:
+  - find: expert
+    replace: experienced
+    when: >-
+      Only when it directly qualifies the nouns "lawyer"/"lawyers" or "advice"
+      (e.g. "expert lawyer", "expert advice", "expert legal advice"). Leave every
+      other use unchanged, such as "expert witness", "Areas of Expertise", and
+      standalone "expertise".
+    match: whole-word     # whole-word (default) | substring
+    case: insensitive     # insensitive (default) | sensitive
+    preserve_case: true   # Expert -> Experienced, expert -> experienced (default true)
+    severity: medium      # high | medium (default) | low
+    reason: Client house style prefers "experienced" over "expert" for these nouns.
+```
+
+Only `find` is required. An empty or omitted `replace` means the rule deletes the term. The `when` clause is the scoping that avoids over-matching — without it, a rule fires on every occurrence.
+
+Rules are rendered into `AGENTS.md` and every batch prompt. In `targeted` mode the agent applies **only** these rules; in `full` or `basic` mode they are applied *in addition to* the normal review, so you can also nudge terminology during a broad pass.
+
+For a quick job you can skip the config file and pass rules inline with `--replace "find=>replace"` (repeatable), optionally adding a condition after `::`:
+
+```bash
+proofread prepare <client-name> --mode targeted \
+  --replace "expert=>experienced::only when qualifying 'lawyer' or 'advice'"
+```
+
+`proofread run` accepts the same `--mode targeted` and `--replace` flags; put complex, reusable conditions in a config file where they stay readable.
+
+### Compiling a plain-language goal (`--goal`)
+
+Writing an accurate rule by hand is fiddly: the risk in any find-and-replace is the *false positives* (should "expert witness" or "Areas of Expertise" change?), and getting the condition right means checking it against the copy the site actually uses. That grounding work is better done by the review agent, which has the extracted pack in front of it. So instead of authoring the `replacements` block yourself, you can describe the change in plain language and let the agent compile it:
+
+```bash
+proofread run --mode targeted \
+  --goal "Change 'expert' to 'experienced' only when it qualifies the nouns 'lawyer' or 'advice'."
+```
+
+`--goal` (and a `goal:` field in the config file) makes the `replacements` block optional. In targeted mode the generated `AGENTS.md` and kick-off prompt instruct the agent to, *before* writing any page report:
+
+1. Read `site-pack/` and expand the goal into concrete rules.
+2. Enumerate both the occurrences it will change and the similar-looking ones it will leave alone, quoting real phrases so the boundary is unambiguous.
+3. Write that scope to `reports/scope-plan.md`.
+4. Present it and wait for your confirmation before starting the review.
+
+This keeps the tool model-free — it still only emits prompts; the compilation and the review both happen in the agent you already point at the repo. The confirmation step lands at the natural pause you already have when you hand the kick-off prompt to your agent, so you approve the interpreted scope (catching ambiguities like "does 'advice' include 'expert guidance'?") before it shapes every page report.
+
+A CLI `--goal` overrides a `goal:` in the config file. A goal re-derives its scope each run, so it is not reproducible across runs; for a scope you want pinned and version-controlled, save the agent's compiled rules as a `replacements` block and pass it with `--config` next time. Both are the same artifact at different lifecycles: `--goal` for quick one-offs, `replacements` YAML for anything you want to reuse.
+
 ## Excluding Pages From Review
 
 Templated boilerplate that is identical across client sites — privacy policy, terms and conditions, and similar — usually does not need proofreading on every run. Add an `excluded_pages` list to your config file to skip it:

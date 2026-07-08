@@ -32,7 +32,12 @@ export async function prepareReviewWorkspace(options: PrepareOptions): Promise<P
 
   const pack = await loadPack(inputDir);
   const configPath = await resolveConfigPath(options.config, process.cwd());
-  const dictionary = await loadDictionaryConfig(getManifestProofreading(pack.manifest), configPath);
+  const dictionary = await loadDictionaryConfig(
+    getManifestProofreading(pack.manifest),
+    configPath,
+    options.replacements,
+    options.goal
+  );
   const { included: reviewPages, excluded: excludedPages } = partitionExcludedPages(
     pack.pages,
     dictionary.excludedPages
@@ -42,7 +47,7 @@ export async function prepareReviewWorkspace(options: PrepareOptions): Promise<P
   const runId = options.runId ?? inferRunId(pack.manifest.extractionDate);
   const workspaceDir = resolveWorkspaceDir(options, clientSlug, runId);
   const workspaceReference = formatWorkspaceReference(workspaceDir);
-  const kickoffPrompt = renderKickoffPrompt(workspaceReference, mode);
+  const kickoffPrompt = renderKickoffPrompt(workspaceReference, mode, dictionary.goal);
 
   if (workspaceDir === inputDir) {
     throw new Error("Output workspace cannot be the same directory as the input pack.");

@@ -13,7 +13,7 @@ import { formatProgressLine } from "./extract/progress.js";
 import type { CliInitOptions } from "./extract/types.js";
 import { runPipeline } from "./pipeline/run.js";
 import { prepareReviewWorkspace } from "./review/run.js";
-import type { PrepareResult, ReviewMode } from "./review/types.js";
+import type { PrepareResult, RawReplacementRule, ReviewMode } from "./review/types.js";
 import { slugify } from "./shared/slug.js";
 
 const program = new Command();
@@ -68,7 +68,17 @@ program
   .option("--run-id <id>", "run folder name under the client archive")
   .option("--out <dir>", "full output review workspace directory override")
   .option("--config <file>", "proofreading config YAML (defaults to proofread.config.yml in the current directory)")
-  .option("--mode <mode>", "review depth: full or basic", parseReviewMode, "full")
+  .option("--mode <mode>", "review depth: full, basic, or targeted", parseReviewMode, "full")
+  .option(
+    "--replace <rule>",
+    'directed replacement "find=>replace" (optionally "::condition"). Repeat for multiple rules.',
+    collectReplace,
+    []
+  )
+  .option(
+    "--goal <text>",
+    "plain-language description of a targeted change; the review agent compiles it into a confirmed scope before reviewing."
+  )
   .option("--max-batch-chars <number>", "maximum estimated characters per batch", parsePositiveInteger)
   .action(async (client: string | undefined, options: {
     input?: string;
@@ -78,10 +88,13 @@ program
     runId?: string;
     config?: string;
     mode?: ReviewMode;
+    replace?: RawReplacementRule[];
+    goal?: string;
     maxBatchChars?: number;
   }) => {
     try {
-      const result = await prepareReviewWorkspace({ ...options, client });
+      const { replace, ...prepareOptions } = options;
+      const result = await prepareReviewWorkspace({ ...prepareOptions, client, replacements: replace });
       printPrepareReviewSummary(result);
     } catch (error) {
       console.error(error instanceof Error ? error.message : String(error));
@@ -104,7 +117,17 @@ program
   .option("--no-interactive", "Do not prompt for missing config values.")
   .option("--force", "Re-extract even when the configured output directory already has a manifest.json.")
   .option("--review-config <file>", "Proofreading config YAML for the review stage; defaults to proofread.config.yml auto-discovery.")
-  .option("--mode <mode>", "review depth: full or basic", parseReviewMode, "full")
+  .option("--mode <mode>", "review depth: full, basic, or targeted", parseReviewMode, "full")
+  .option(
+    "--replace <rule>",
+    'directed replacement "find=>replace" (optionally "::condition"). Repeat for multiple rules.',
+    collectReplace,
+    []
+  )
+  .option(
+    "--goal <text>",
+    "plain-language description of a targeted change; the review agent compiles it into a confirmed scope before reviewing."
+  )
   .option("--max-batch-chars <number>", "maximum estimated characters per batch", parsePositiveInteger)
   .action(async (options: CliPipelineOptions, command: Command) => {
     try {
@@ -120,6 +143,8 @@ program
         reviewConfigPath: options.reviewConfig,
         mode: options.mode,
         maxBatchChars: options.maxBatchChars,
+        replacements: options.replace,
+        goal: options.goal,
         onProgress: status.update,
         log: (message) => console.log(message)
       });
@@ -163,6 +188,8 @@ interface CliPipelineOptions extends CliInitOptions {
   force?: boolean;
   reviewConfig?: string;
   mode?: ReviewMode;
+  replace?: RawReplacementRule[];
+  goal?: string;
   maxBatchChars?: number;
 }
 
@@ -388,9 +415,34 @@ function parsePositiveInteger(value: string): number {
 }
 
 function parseReviewMode(value: string): ReviewMode {
-  if (value === "full" || value === "basic") {
+  if (value === "full" || value === "basic" || value === "targeted") {
     return value;
   }
 
-  throw new Error(`Expected review mode "full" or "basic", got: ${value}`);
+  throw new Error(`Expected review mode "full", "basic", or "targeted", got: ${value}`);
+}
+
+/**
+ * Parses a `--replace` flag value into a raw replacement rule. Format:
+ * `find=>replace` with an optional `::condition` suffix that becomes the rule's
+ * `when` clause, e.g. `expert=>experienced::only when qualifying lawyer or advice`.
+ */
+function parseReplaceFlag(value: string): RawReplacementRule {
+  const [pair, ...conditionParts] = value.split("::");
+  const arrowIndex = pair.indexOf("=>");
+  if (arrowIndex === -1) {
+    throw new Error(`--replace expects "find=>replace" (optionally "::condition"), got: ${value}`);
+  }
+  const find = pair.slice(0, arrowIndex).trim();
+  const replace = pair.slice(arrowIndex + 2).trim();
+  if (!find) {
+    throw new Error(`--replace is missing the term to find: ${value}`);
+  }
+  const when = conditionParts.join("::").trim();
+  return { find, replace, when: when || undefined };
+}
+
+function collectReplace(value: string, previous: RawReplacementRule[]): RawReplacementRule[] {
+  previous.push(parseReplaceFlag(value));
+  return previous;
 }

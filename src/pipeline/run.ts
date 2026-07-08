@@ -4,7 +4,7 @@ import { constants } from "node:fs";
 import { resolveConfig } from "../extract/config.js";
 import { runAudit, type RunProgress } from "../extract/run.js";
 import { prepareReviewWorkspace } from "../review/run.js";
-import type { PrepareResult, ReviewMode } from "../review/types.js";
+import type { PrepareResult, RawReplacementRule, ReviewMode } from "../review/types.js";
 
 export interface RunPipelineOptions {
   configPath: string;
@@ -12,6 +12,8 @@ export interface RunPipelineOptions {
   reviewConfigPath?: string;
   mode?: ReviewMode;
   maxBatchChars?: number;
+  replacements?: RawReplacementRule[];
+  goal?: string;
   onProgress?: (progress: RunProgress) => void;
   log?: (message: string) => void;
 }
@@ -32,7 +34,9 @@ export async function runPipeline(options: RunPipelineOptions): Promise<PrepareR
     input: outputDir,
     config: options.reviewConfigPath,
     mode: options.mode,
-    maxBatchChars: options.maxBatchChars
+    maxBatchChars: options.maxBatchChars,
+    replacements: options.replacements,
+    goal: options.goal
   });
 }
 

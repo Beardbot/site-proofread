@@ -5,7 +5,12 @@ import type {
   DictionaryConfig,
   DictionaryTermGroups,
   ManifestProofreadingConfig,
-  RawDictionaryConfig
+  RawDictionaryConfig,
+  RawReplacementRule,
+  ReplacementCase,
+  ReplacementMatch,
+  ReplacementRule,
+  ReplacementSeverity
 } from "./types.js";
 
 /**
@@ -30,10 +35,21 @@ const EMPTY_GROUPS: Required<DictionaryTermGroups> = {
 
 export async function loadDictionaryConfig(
   manifestProofreading?: ManifestProofreadingConfig,
-  configPath?: string
+  configPath?: string,
+  extraReplacements?: RawReplacementRule[],
+  extraGoal?: string
 ): Promise<DictionaryConfig> {
   const rawConfig = configPath ? await loadRawDictionaryConfig(configPath) : {};
-  return mergeDictionaryConfig(manifestProofreading, rawConfig);
+  const merged = mergeDictionaryConfig(manifestProofreading, rawConfig);
+  if (extraReplacements?.length) {
+    merged.replacements = [...merged.replacements, ...normalizeReplacements(extraReplacements)];
+  }
+  // A CLI --goal overrides any goal set in the config file.
+  const cliGoal = normalizeGoal(extraGoal);
+  if (cliGoal) {
+    merged.goal = cliGoal;
+  }
+  return merged;
 }
 
 async function loadRawDictionaryConfig(configPath: string): Promise<RawDictionaryConfig> {
@@ -91,6 +107,8 @@ export function mergeDictionaryConfig(
     ]),
     ignoredFindings: normalizeIgnoredFindings(raw.ignored_findings),
     preferredTerms: normalizePreferredTerms(raw.preferred_terms),
+    replacements: normalizeReplacements(raw.replacements),
+    goal: normalizeGoal(raw.goal),
     notes: [
       ...normalizeStringArray(manifestProofreading?.notes),
       ...normalizeStringArray(raw.notes)
@@ -180,6 +198,55 @@ function normalizePreferredTerms(value: unknown): { use: string; avoid?: string[
       }
     ];
   });
+}
+
+function normalizeReplacements(value: unknown): ReplacementRule[] {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((item) => {
+    if (!item || typeof item !== "object") return [];
+    const rule = item as {
+      find?: unknown;
+      replace?: unknown;
+      when?: unknown;
+      match?: unknown;
+      case?: unknown;
+      preserve_case?: unknown;
+      severity?: unknown;
+      reason?: unknown;
+    };
+    // A rule with no `find` is meaningless; skip it rather than emit a
+    // replacement that matches nothing. An empty `replace` is allowed (a
+    // deletion), so only `find` is required.
+    if (typeof rule.find !== "string" || !rule.find.trim()) return [];
+    return [
+      {
+        find: rule.find.trim(),
+        replace: typeof rule.replace === "string" ? rule.replace.trim() : "",
+        when: typeof rule.when === "string" && rule.when.trim() ? rule.when.trim() : undefined,
+        match: normalizeReplacementMatch(rule.match),
+        case: normalizeReplacementCase(rule.case),
+        preserveCase: rule.preserve_case !== false,
+        severity: normalizeReplacementSeverity(rule.severity),
+        reason: typeof rule.reason === "string" && rule.reason.trim() ? rule.reason.trim() : undefined
+      }
+    ];
+  });
+}
+
+function normalizeReplacementMatch(value: unknown): ReplacementMatch {
+  return value === "substring" ? "substring" : "whole-word";
+}
+
+function normalizeReplacementCase(value: unknown): ReplacementCase {
+  return value === "sensitive" ? "sensitive" : "insensitive";
+}
+
+function normalizeReplacementSeverity(value: unknown): ReplacementSeverity {
+  return value === "high" || value === "low" ? value : "medium";
+}
+
+function normalizeGoal(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
 }
 
 function normalizeStringArray(value: unknown): string[] {

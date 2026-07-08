@@ -1,5 +1,5 @@
 import { flattenAllowedTerms } from "./config.js";
-import type { DictionaryConfig, ExcludedPage, PackData, ReviewBatch, ReviewMode, ReviewPage } from "./types.js";
+import type { DictionaryConfig, ExcludedPage, PackData, ReplacementRule, ReviewBatch, ReviewMode, ReviewPage } from "./types.js";
 
 export function renderAgentsMd(dictionary: DictionaryConfig, mode: ReviewMode): string {
   return `# Proofreading Review Agent Instructions
@@ -40,6 +40,10 @@ ${renderReportOutputEncodingRules()}
 Use ${dictionary.language} by default unless the generated config says otherwise.
 
 Respect all allowed terms, ignored findings, preferred terminology, client names, staff names, brand terms, product names, industry terms, intentional spellings, and notes included in the generated prompts/config.
+
+## Directed Replacements
+
+${renderDirectedReplacementsSection(dictionary, mode)}
 
 ## Source Files
 
@@ -116,14 +120,23 @@ See \`codex-kickoff-prompt.md\`.
 `;
 }
 
-export function renderKickoffPrompt(workspaceReference: string, mode: ReviewMode): string {
+export function renderKickoffPrompt(workspaceReference: string, mode: ReviewMode, goal?: string): string {
+  const goalBlock =
+    goal && mode === "targeted"
+      ? `Targeted goal: ${goal}
+
+Before writing any page report, compile this goal into an explicit scope grounded in the actual copy in \`${workspaceReference}/site-pack\` (list what you will change and what you will leave unchanged), write it to \`${workspaceReference}/reports/scope-plan.md\`, and confirm it with me before starting the review.
+
+`
+      : "";
+
   return `Use the review instructions in \`${workspaceReference}/AGENTS.md\`.
 
 Proofread the prepared site package in \`${workspaceReference}/site-pack\`.
 
 Review mode: ${renderModeLabel(mode)}.
 
-Complete the pending page-report placeholders in \`${workspaceReference}/reports/pages\`, then complete \`${workspaceReference}/reports/final-report.md\`.
+${goalBlock}Complete the pending page-report placeholders in \`${workspaceReference}/reports/pages\`, then complete \`${workspaceReference}/reports/final-report.md\`.
 
 Do not crawl the live website.
 Do not rewrite for style.
@@ -580,6 +593,7 @@ export function renderDictionary(dictionary: DictionaryConfig): string {
   const flatTerms = flattenAllowedTerms(dictionary.allowedTerms);
   const sections = [
     `Language: ${dictionary.language}`,
+    ...(dictionary.goal ? ["", "Change goal:", dictionary.goal] : []),
     "",
     "Allowed terms:",
     renderStringList(flatTerms),
@@ -595,11 +609,81 @@ export function renderDictionary(dictionary: DictionaryConfig): string {
       return finding.reason ? `${finding.text} - ${finding.reason}` : finding.text;
     })),
     "",
+    "Directed replacements:",
+    renderReplacements(dictionary.replacements),
+    "",
     "Notes:",
     renderStringList(dictionary.notes)
   ];
 
   return sections.join("\n");
+}
+
+function renderDirectedReplacementsSection(dictionary: DictionaryConfig, mode: ReviewMode): string {
+  const hasGoal = Boolean(dictionary.goal);
+  const hasRules = dictionary.replacements.length > 0;
+  const targeted = mode === "targeted";
+
+  if (!hasGoal && !hasRules) {
+    return targeted
+      ? "No change goal or replacement rules are configured, so this targeted pass has nothing to apply; report no findings."
+      : "_None configured._";
+  }
+
+  const parts: string[] = [];
+
+  if (hasGoal) {
+    parts.push(`Change goal (plain language):\n\n> ${dictionary.goal}`);
+    parts.push(
+      targeted
+        ? [
+            "Before writing any page report, compile this goal into an explicit, corpus-grounded scope:",
+            "",
+            "1. Read the pages in `site-pack/` and expand the goal into concrete replacement rules.",
+            "2. Enumerate both the occurrences you WILL change and the similar-looking occurrences you will leave unchanged, quoting real phrases from the copy so the boundary is unambiguous.",
+            "3. Write this scope to `reports/scope-plan.md`.",
+            "4. Present the scope plan to the user and wait for confirmation. Do not begin the page reports until the user confirms the scope.",
+            "",
+            "Then apply ONLY the confirmed scope and report nothing else."
+          ].join("\n")
+        : "Apply this change goal in addition to the rest of the review."
+    );
+  }
+
+  if (hasRules) {
+    const scope = targeted
+      ? hasGoal
+        ? "A starting rule set derived from the goal is provided below. Reconcile it with the goal and the actual copy, fold it into the scope plan, and confirm before applying:"
+        : "This is a targeted pass: apply ONLY these replacements and report nothing else. Honour each rule's condition and matching options, and record each change as a finding using the standard diff format."
+      : "Apply these replacements in addition to the rest of the review.";
+    parts.push(`${scope}\n\n${renderReplacements(dictionary.replacements)}`);
+  }
+
+  return parts.join("\n\n");
+}
+
+export function renderReplacements(rules: ReplacementRule[]): string {
+  if (!rules.length) return "_None._";
+  return rules
+    .map((rule, index) => {
+      const matchLabel = rule.match === "substring" ? "match as a substring" : "match whole words only";
+      const caseLabel = rule.case === "sensitive" ? "case-sensitive" : "case-insensitive";
+      const preserve = rule.preserveCase
+        ? "; preserve the original capitalisation in the replacement"
+        : "";
+      const lines = [
+        `${index + 1}. Replace "${rule.find}" with "${rule.replace}" (${rule.severity} severity).`,
+        `   - Matching: ${matchLabel}, ${caseLabel}${preserve}.`
+      ];
+      if (rule.when) {
+        lines.push(`   - Apply only when: ${rule.when}`);
+      }
+      if (rule.reason) {
+        lines.push(`   - Reason to record on findings: ${rule.reason}`);
+      }
+      return lines.join("\n");
+    })
+    .join("\n\n");
 }
 
 function renderBatchList(batches: ReviewBatch[]): string {
@@ -668,10 +752,21 @@ function renderStringList(items: string[]): string {
 }
 
 function renderModeLabel(mode: ReviewMode): string {
+  if (mode === "targeted") return "Directed replacement pass";
   return mode === "basic" ? "Basic launch sanity check" : "Full proofreading review";
 }
 
 function renderModeGoal(mode: ReviewMode): string {
+  if (mode === "targeted") {
+    return `Perform a directed replacement pass only. Apply ONLY the changes described under "Directed replacements" - either the explicit rules listed there, or the scope you compile and confirm from the change goal; make no other edits.
+
+For each rule, find every occurrence of the target term in the extracted copy. When a rule states a condition, use judgement to include only the occurrences that satisfy it and leave every other occurrence exactly as written. Report each qualifying occurrence as a finding at the rule's severity, using the standard inline word-level diff format.
+
+Apply the replacements wherever the target term appears in the extracted copy so the change is consistent across the page - this includes headings, body copy, buttons, links, meta titles and descriptions, and image alt text. (URL slugs remain out of scope.)
+
+Do not report spelling, grammar, punctuation, style, tone, consistency, or capitalisation issues, or any other issue that is not one of the listed replacements. Limiting the pass to the listed replacements refers to the kind of change, not the parts of the page: a qualifying term in a meta description or alt text is still in scope. If a rule has no qualifying occurrences, report no findings for it. These replacements are explicit client-authorised directives, not style preferences, so applying them does not conflict with the "do not rewrite for style" boundary.`;
+  }
+
   if (mode === "basic") {
     return `Only flag glaring spelling mistakes, basic grammar errors, obvious punctuation errors, broken or truncated visible sentences, placeholder text, incorrect staging/test copy, and other issues that would look clearly wrong immediately before launch.
 
