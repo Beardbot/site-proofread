@@ -19,6 +19,10 @@ export interface PrepareOptions {
   config?: string;
   maxBatchChars?: number;
   mode?: ReviewMode;
+  /** Extra replacement rules supplied on the CLI (e.g. via --replace), merged on top of the config file. */
+  replacements?: RawReplacementRule[];
+  /** Plain-language change goal supplied on the CLI (--goal); overrides any goal in the config file. */
+  goal?: string;
 }
 
 export interface PrepareResult {
@@ -37,7 +41,7 @@ export interface PrepareResult {
   kickoffPrompt: string;
 }
 
-export type ReviewMode = "full" | "basic";
+export type ReviewMode = "full" | "basic" | "targeted";
 
 export type { FailedPage, ManifestProofreadingConfig, SiteCopyManifest, SkippedUrl };
 export type PageOutput = PackPageOutput;
@@ -48,7 +52,43 @@ export interface RawDictionaryConfig {
   excluded_pages?: string[];
   ignored_findings?: IgnoredFinding[];
   preferred_terms?: PreferredTerm[];
+  replacements?: RawReplacementRule[];
+  /** Plain-language description of a targeted change; the review agent compiles it into an explicit, confirmed scope. */
+  goal?: string;
   notes?: string[];
+}
+
+/**
+ * A single directed word/phrase replacement supplied by the review config. Broad
+ * enough for any narrow copy change (branding, adjectives, names): `find` ->
+ * `replace`, optionally gated by a freeform `when` condition the agent judges
+ * (e.g. only when it qualifies certain nouns). Drives `targeted` review mode,
+ * where the agent applies only these rules and reports nothing else.
+ */
+export interface RawReplacementRule {
+  find?: string;
+  replace?: string;
+  when?: string;
+  match?: string;
+  case?: string;
+  preserve_case?: boolean;
+  severity?: string;
+  reason?: string;
+}
+
+export type ReplacementMatch = "whole-word" | "substring";
+export type ReplacementCase = "insensitive" | "sensitive";
+export type ReplacementSeverity = "high" | "medium" | "low";
+
+export interface ReplacementRule {
+  find: string;
+  replace: string;
+  when?: string;
+  match: ReplacementMatch;
+  case: ReplacementCase;
+  preserveCase: boolean;
+  severity: ReplacementSeverity;
+  reason?: string;
 }
 
 export interface DictionaryTermGroups {
@@ -77,6 +117,8 @@ export interface DictionaryConfig {
   excludedPages: string[];
   ignoredFindings: IgnoredFinding[];
   preferredTerms: PreferredTerm[];
+  replacements: ReplacementRule[];
+  goal?: string;
   notes: string[];
 }
 
